@@ -1,0 +1,3070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Onigario</title>
+<style>
+  :root {
+    --bg: #070914;
+    --panel: rgba(16, 20, 36, 0.72);
+    --panel-strong: rgba(18, 24, 44, 0.92);
+    --stroke: rgba(255,255,255,0.12);
+    --text: #f6f7ff;
+    --muted: #9ca7c7;
+    --oni: #ff4d7d;
+    --oni2: #ffb84d;
+    --bad: #7a5cff;
+    --good: #52ffca;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255, 74, 128, 0.22), transparent 26%),
+      radial-gradient(circle at 80% 20%, rgba(119, 89, 255, 0.20), transparent 28%),
+      radial-gradient(circle at 50% 90%, rgba(82, 255, 202, 0.12), transparent 30%),
+      linear-gradient(145deg, #050711, #0b1024 52%, #060714);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+  }
+
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: crosshair;
+  }
+
+  .hud {
+    position: fixed;
+    inset: 16px 16px auto 16px;
+    z-index: 5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 14px;
+    pointer-events: none;
+  }
+
+  .hud-left, .hud-right {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .hud-right {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+
+  .pill, .mini, .toast {
+    border: 1px solid var(--stroke);
+    background: var(--panel);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06);
+    border-radius: 18px;
+  }
+
+  .pill {
+    min-width: 112px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+
+  .label {
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .value {
+    margin-top: 3px;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 176px;
+  }
+
+  .logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 36% 34%, #fff8, transparent 12%),
+      linear-gradient(135deg, var(--oni), var(--oni2));
+    box-shadow: 0 0 24px rgba(255,77,125,0.34);
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  .logo::before,
+  .logo::after {
+    content: "";
+    position: absolute;
+    top: -7px;
+    width: 9px;
+    height: 18px;
+    border-radius: 10px 10px 3px 3px;
+    background: linear-gradient(#ffe1eb, #ff4d7d);
+    transform-origin: bottom;
+  }
+  .logo::before { left: 7px; transform: rotate(-28deg); }
+  .logo::after { right: 7px; transform: rotate(28deg); }
+
+  .mini {
+    width: 166px;
+    height: 166px;
+    padding: 10px;
+  }
+
+  #minimap {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.18);
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 50% 28%, rgba(255,77,125,0.18), transparent 32%),
+      radial-gradient(circle at 58% 70%, rgba(82,255,202,0.10), transparent 30%),
+      rgba(3, 5, 13, 0.70);
+    backdrop-filter: blur(12px);
+  }
+
+  #menu {
+    padding-bottom: 28px;
+  }
+
+  .menu-shell {
+    width: min(780px, calc(100vw - 48px));
+    display: grid;
+    justify-items: center;
+    gap: 0;
+  }
+
+  .menu-shell.settings-view-open .shop-toggle,
+  .menu-shell.settings-view-open .shop-drawer {
+    display: none;
+  }
+
+  .screen {
+    width: min(820px, 100%);
+    border: 1px solid rgba(255,255,255,0.14);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.06), transparent),
+      rgba(13, 17, 32, 0.88);
+    box-shadow: 0 34px 90px rgba(0,0,0,0.50);
+    border-radius: 34px;
+    padding: clamp(24px, 5vw, 46px);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menu-screen {
+    width: 100%;
+    padding: 38px clamp(30px, 5vw, 60px) 34px;
+    border-color: rgba(255,255,255,0.18);
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 78% 9%, rgba(122,92,255,0.28), transparent 20%),
+      radial-gradient(circle at 22% 16%, rgba(255,184,77,0.14), transparent 24%),
+      radial-gradient(circle at 52% 100%, rgba(82,255,202,0.12), transparent 26%),
+      radial-gradient(circle at 50% 0%, rgba(255,255,255,0.12), transparent 24%),
+      linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025)),
+      rgba(12, 16, 31, 0.90);
+  }
+
+  #endScreen {
+    place-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #endScreen.end-shop-open {
+    place-items: center;
+  }
+
+  .end-shell {
+    width: min(820px, 100%);
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    max-height: calc(100vh - 48px);
+  }
+
+  .end-shell .screen {
+    width: 100%;
+  }
+
+  #endScreen.end-shop-open .end-shell {
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
+    padding-right: 4px;
+  }
+
+  #endScreen.end-shop-open .screen {
+    padding-top: clamp(20px, 3.4vh, 34px);
+    padding-bottom: clamp(20px, 3.4vh, 34px);
+    border-radius: 26px;
+  }
+
+  #endScreen.end-shop-open h1 {
+    font-size: clamp(54px, 9vh, 80px);
+  }
+
+  #endScreen.end-shop-open .subtitle {
+    margin-top: 8px;
+  }
+
+  .screen::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(255,184,77,0.17), transparent 22%),
+      radial-gradient(circle at 88% 10%, rgba(122,92,255,0.20), transparent 24%),
+      radial-gradient(circle at 60% 100%, rgba(82,255,202,0.12), transparent 24%);
+    pointer-events: none;
+  }
+
+  .menu-screen::after {
+    content: "";
+    position: absolute;
+    inset: auto 12% -32px 12%;
+    height: 96px;
+    background: radial-gradient(ellipse at center, rgba(82,255,202,0.18), transparent 70%);
+    pointer-events: none;
+  }
+
+  .screen > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 80px;
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-shadow: 0 10px 48px rgba(255,77,125,0.32), 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  .menu-screen h1 {
+    font-size: 76px;
+  }
+
+  .menu-view {
+    display: contents;
+  }
+
+  .title-word {
+    display: inline-flex;
+    justify-content: center;
+    gap: 0.08em;
+  }
+
+  .player-preview {
+    --blob-size: 72px;
+    width: var(--blob-size);
+    height: var(--blob-size);
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 30%, rgba(255,255,255,0.95), transparent 12%),
+      radial-gradient(circle at 58% 58%, rgba(255,184,77,0.78), transparent 24%),
+      linear-gradient(135deg, #ff4d7d 8%, #ff6f63 46%, #ffb84d 100%);
+    box-shadow: 0 18px 54px rgba(255,77,125,0.35), inset 0 1px 0 rgba(255,255,255,0.46);
+    position: relative;
+    opacity: 0.92;
+    pointer-events: none;
+    transform: translateZ(0);
+  }
+
+  .player-preview::before,
+  .player-preview::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--blob-size) * -0.16);
+    width: calc(var(--blob-size) * 0.20);
+    height: calc(var(--blob-size) * 0.40);
+    border-radius: 15px 15px 4px 4px;
+    background: linear-gradient(#fff0f6, #ff7a9f);
+    transform-origin: bottom;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .player-preview::before {
+    left: calc(var(--blob-size) * 0.22);
+    transform: rotate(-27deg);
+  }
+
+  .player-preview::after {
+    right: calc(var(--blob-size) * 0.22);
+    transform: rotate(27deg);
+  }
+
+  .subtitle {
+    margin: 14px auto 0;
+    max-width: 590px;
+    color: #d9e0fb;
+    font-size: 17px;
+    line-height: 1.48;
+    text-wrap: balance;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 26px auto 22px;
+    max-width: 692px;
+  }
+
+  .control {
+    border: 1px solid rgba(255,255,255,0.13);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.028)),
+      rgba(255,255,255,0.04);
+    border-radius: 18px;
+    padding: 16px 15px;
+    min-height: 108px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 16px 34px rgba(0,0,0,0.18);
+  }
+
+  .key {
+    display: inline-grid;
+    place-items: center;
+    min-width: 44px;
+    height: 34px;
+    padding: 0 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-weight: 800;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  .control p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .result-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 30px auto 18px;
+    max-width: 720px;
+  }
+
+  .result-card {
+    min-height: 122px;
+    padding: 18px 16px;
+  }
+
+  .result-card .key {
+    margin-bottom: 14px;
+  }
+
+  .result-value {
+    color: white;
+    font-size: 30px;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .result-list {
+    width: min(520px, 100%);
+    margin: 0 auto 26px;
+    padding: 6px 0;
+  }
+
+  .shard-earned {
+    width: min(520px, 100%);
+    margin: 0 auto 12px;
+    padding: 13px 16px;
+    border: 1px solid rgba(255,184,77,0.28);
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(255,255,255,0.13), transparent 28%),
+      linear-gradient(135deg, rgba(255,184,77,0.22), rgba(255,77,125,0.12)),
+      rgba(255,255,255,0.045);
+    color: #fff3cf;
+    font-weight: 950;
+    font-size: 20px;
+    text-align: center;
+    box-shadow: 0 16px 36px rgba(255,184,77,0.12), inset 0 1px 0 rgba(255,255,255,0.14);
+  }
+
+  .shard-earned span {
+    color: white;
+  }
+
+  .result-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 22px;
+    align-items: center;
+    padding: 10px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: #dce4ff;
+    text-align: left;
+  }
+
+  .result-row:last-child {
+    border-bottom: 0;
+  }
+
+  .result-row span:first-child {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .result-row span:last-child {
+    color: white;
+    font-size: 16px;
+    font-weight: 900;
+    text-align: right;
+  }
+
+  #endScreen.end-shop-open .result-summary {
+    gap: 12px;
+    margin: 20px auto 12px;
+  }
+
+  #endScreen.end-shop-open .result-card {
+    min-height: 96px;
+    padding: 14px 12px;
+  }
+
+  #endScreen.end-shop-open .result-card .key {
+    margin-bottom: 10px;
+  }
+
+  #endScreen.end-shop-open .result-value {
+    font-size: 26px;
+  }
+
+  #endScreen.end-shop-open .shard-earned {
+    margin-bottom: 8px;
+    padding: 11px 14px;
+    font-size: 18px;
+  }
+
+  #endScreen.end-shop-open .result-list {
+    margin-bottom: 18px;
+  }
+
+  #endScreen.end-shop-open .result-row {
+    padding: 8px 6px;
+  }
+
+  button {
+    border: 0;
+    cursor: pointer;
+    color: white;
+    font-weight: 900;
+    letter-spacing: 0;
+    font-size: 16px;
+    padding: 15px 24px;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 30% 10%, rgba(255,255,255,0.38), transparent 18%),
+      linear-gradient(135deg, #ff4d7d, #ff9d4d);
+    box-shadow: 0 18px 44px rgba(255,77,125,0.32), inset 0 1px 0 rgba(255,255,255,0.32);
+    transition: transform 0.16s ease, filter 0.16s ease;
+  }
+
+  button:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.06);
+  }
+
+  button:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .ghost {
+    background: rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    margin-left: 8px;
+  }
+
+  #startBtn {
+    min-width: 186px;
+    margin-top: 8px;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .shop-toggle {
+    width: 54px;
+    height: 54px;
+    margin-top: -16px;
+    padding: 0 0 8px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: white;
+    line-height: 1;
+    position: relative;
+  }
+
+  .shop-toggle::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 2px solid rgba(255,255,255,0.82);
+    border-radius: 12px;
+    background: #02040a;
+    box-shadow: 0 16px 34px rgba(0,0,0,0.34);
+    transform: rotate(45deg);
+  }
+
+  .shop-toggle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid white;
+    transform: translate(-50%, -35%);
+    z-index: 1;
+  }
+
+  .shop-toggle.upgrade-ready::after {
+    animation: arrowBounce 0.82s ease-in-out infinite;
+  }
+
+  .menu-shell.shop-open .shop-toggle.upgrade-ready::after {
+    animation: none;
+  }
+
+  .end-shop.shop-open .shop-toggle.upgrade-ready::after {
+    animation: none;
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% {
+      margin-top: 0;
+    }
+    50% {
+      margin-top: 7px;
+    }
+  }
+
+  .shop-toggle:hover {
+    transform: translateY(2px);
+  }
+
+  .menu-shell.shop-open .shop-toggle {
+    transform: translateY(2px);
+  }
+
+  .menu-shell.shop-open .shop-toggle::after,
+  .end-shop.shop-open .shop-toggle::after {
+    border-top: 0;
+    border-bottom: 10px solid white;
+    transform: translate(-50%, -65%);
+  }
+
+  .shop-drawer {
+    width: min(720px, 94%);
+    max-height: 0;
+    margin-top: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+    transition: max-height 0.28s ease, opacity 0.22s ease, transform 0.28s ease, margin-top 0.28s ease;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255,77,125,0.12), transparent 24%),
+      radial-gradient(circle at 84% 0%, rgba(82,255,202,0.09), transparent 24%),
+      rgba(2, 4, 10, 0.92);
+    box-shadow: 0 28px 60px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+
+  .menu-shell.shop-open .shop-drawer {
+    max-height: 380px;
+    margin-top: 14px;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .end-shop {
+    display: grid;
+    justify-items: center;
+    width: min(560px, 100%);
+    margin: 0 auto;
+  }
+
+  .end-shop .shop-toggle {
+    width: 44px;
+    height: 44px;
+    margin-top: 0;
+  }
+
+  .end-shop .shop-toggle::before {
+    inset: 5px;
+    border-radius: 10px;
+  }
+
+  .end-shop .shop-toggle::after {
+    border-left-width: 6px;
+    border-right-width: 6px;
+    border-top-width: 9px;
+  }
+
+  .end-shop.shop-open .shop-toggle {
+    transform: translateY(2px);
+  }
+
+  .end-shop .shop-drawer {
+    width: 100%;
+    border-radius: 16px;
+    transform: translateY(-8px) scale(0.99);
+  }
+
+  .end-shop.shop-open .shop-drawer {
+    max-height: 300px;
+    margin-top: 8px;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .end-shop .shop-inner {
+    padding: 12px;
+  }
+
+  .end-shop .shop-head {
+    margin-bottom: 9px;
+  }
+
+  .end-shop .shop-title {
+    font-size: 13px;
+  }
+
+  .end-shop .wallet {
+    min-height: 30px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .end-shop .upgrade-grid {
+    gap: 8px;
+  }
+
+  .end-shop .upgrade-card {
+    min-height: 84px;
+    padding: 10px 9px;
+    border-radius: 10px;
+  }
+
+  .end-shop .upgrade-title {
+    font-size: 11px;
+  }
+
+  .end-shop .upgrade-level {
+    font-size: 10px;
+  }
+
+  .end-shop .upgrade-buy {
+    margin-top: 7px;
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .shop-inner {
+    padding: 18px;
+  }
+
+  .shop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .shop-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 900;
+  }
+
+  .game-timer {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    z-index: 12;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    background: rgba(8, 11, 24, 0.66);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
+    color: white;
+    pointer-events: none;
+  }
+
+  .game-timer .label {
+    color: rgba(220,228,255,0.62);
+  }
+
+  .game-timer-value {
+    font-weight: 900;
+    font-size: 15px;
+  }
+
+  .menu-icon-button {
+    position: absolute;
+    bottom: 18px;
+    z-index: 3;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+    background: rgba(3, 5, 12, 0.62);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 30px rgba(0,0,0,0.24);
+    color: rgba(255,255,255,0.78);
+    font-weight: 900;
+  }
+
+  .settings-open {
+    right: 18px;
+  }
+
+  .menu-icon-button svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    stroke: currentColor;
+  }
+
+  .menu-icon-button:hover {
+    color: white;
+    transform: scale(1.04);
+  }
+
+  .settings-panel {
+    width: min(620px, 100%);
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .settings-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .settings-title {
+    color: white;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 950;
+    text-shadow: 0 10px 48px rgba(255,77,125,0.24);
+  }
+
+  .settings-close {
+    min-width: 92px;
+    height: 42px;
+    padding: 0 16px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    font-size: 13px;
+  }
+
+  .settings-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 16px 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .settings-row:first-of-type {
+    border-top: 0;
+  }
+
+  .settings-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #ff4d7d;
+    margin-top: 2px;
+  }
+
+  .settings-label {
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .settings-help {
+    margin: 5px 0 0;
+    color: rgba(220,228,255,0.62);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .settings-textarea {
+    width: 100%;
+    min-height: 112px;
+    margin-top: 8px;
+    padding: 10px 11px;
+    resize: vertical;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    outline: none;
+    color: white;
+    font: 800 12px/1.4 system-ui, sans-serif;
+    background: rgba(255,255,255,0.055);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .settings-reset {
+    width: 100%;
+    margin-top: 6px;
+    padding: 11px 14px;
+    background:
+      radial-gradient(circle at 30% 10%, rgba(255,255,255,0.22), transparent 18%),
+      linear-gradient(135deg, rgba(255,77,125,0.88), rgba(122,92,255,0.78));
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 66px;
+    z-index: 14;
+    transform: translateX(-50%) translateY(16px);
+    opacity: 0;
+    padding: 12px 16px;
+    color: #dce3ff;
+    font-size: 13px;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .mobile-help {
+    display: none;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  @media (max-width: 720px) {
+    h1,
+    .menu-screen h1 {
+      font-size: 58px;
+    }
+    .subtitle {
+      font-size: 15px;
+    }
+    .menu-screen {
+      width: min(100%, calc(100vw - 28px));
+      padding: 28px 18px;
+    }
+    .player-preview {
+      --blob-size: 54px;
+      margin-bottom: 14px;
+    }
+    .controls {
+      grid-template-columns: 1fr;
+    }
+    .result-summary {
+      grid-template-columns: 1fr;
+    }
+    .upgrade-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .hud {
+      inset: 10px 10px auto 10px;
+    }
+    .pill {
+      min-width: auto;
+      padding: 8px 10px;
+      border-radius: 14px;
+    }
+    .value {
+      font-size: 15px;
+    }
+    .mini {
+      width: 116px;
+      height: 116px;
+    }
+    .brand {
+      min-width: 150px;
+    }
+    .mobile-help {
+      display: block;
+    }
+  }
+
+  @media (min-width: 900px) {
+    h1,
+    .menu-screen h1 {
+      font-size: 94px;
+    }
+  }
+  .setup-row {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 12px;
+    margin: 38px auto 8px;
+    max-width: 610px;
+  }
+
+  .wallet {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: #fff4d8;
+    font-weight: 900;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.18);
+  }
+
+  .wallet .label {
+    color: rgba(255,244,216,0.66);
+  }
+
+  .upgrade-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: none;
+    margin: 0;
+  }
+
+  .upgrade-card {
+    min-height: 116px;
+    padding: 14px 12px;
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.018)),
+      rgba(255,255,255,0.035);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 28px rgba(0,0,0,0.28);
+  }
+
+  .upgrade-title {
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .upgrade-level {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .upgrade-buy {
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px 10px;
+    font-size: 12px;
+    box-shadow: 0 10px 24px rgba(255,77,125,0.22), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+
+  .upgrade-buy:disabled {
+    cursor: default;
+    opacity: 0.45;
+    filter: saturate(0.5);
+    transform: none;
+  }
+
+  @media (max-width: 720px) {
+    .end-shop .upgrade-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .end-shop.shop-open .shop-drawer {
+      max-height: 430px;
+    }
+  }
+
+  @media (max-height: 760px) and (min-width: 760px) {
+    #endScreen.end-shop-open .end-shell {
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.68fr);
+      align-items: start;
+      gap: 14px;
+      width: min(1180px, 100%);
+    }
+
+    #endScreen.end-shop-open .screen {
+      grid-row: 1;
+    }
+
+    #endScreen.end-shop-open .end-shop {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      width: 100%;
+      padding-top: 8px;
+    }
+
+    #endScreen.end-shop-open .end-shop .shop-toggle {
+      margin-bottom: 6px;
+    }
+
+    #endScreen.end-shop-open .end-shop.shop-open .shop-drawer {
+      max-height: calc(100vh - 128px);
+      overflow-y: auto;
+    }
+
+    #endScreen.end-shop-open .end-shop .upgrade-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .name-input {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.14);
+    outline: none;
+    color: white;
+    font: 800 15px/1 system-ui, sans-serif;
+    padding: 15px 16px;
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+      rgba(255,255,255,0.055);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 12px 30px rgba(0,0,0,0.20);
+  }
+
+  .name-input::placeholder {
+    color: rgba(220,228,255,0.42);
+  }
+
+  .tip-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    padding: 15px 16px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    background:
+      linear-gradient(135deg, rgba(255, 122, 89, 0.22), rgba(122, 92, 255, 0.18)),
+      rgba(255,255,255,0.055);
+    color: #dce4ff;
+    font-size: 13px;
+    font-weight: 900;
+    user-select: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 28px rgba(0,0,0,0.18);
+  }
+
+  .tip-button.off {
+    color: rgba(220,228,255,0.55);
+    background: rgba(255,255,255,0.045);
+  }
+
+  @media (max-width: 720px) {
+    .setup-row {
+      grid-template-columns: 1fr;
+      margin-top: 26px;
+    }
+  }
+
+</style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div class="hud hidden" id="hud">
+    <div class="hud-left">
+      <div class="pill">
+        <div class="label">Mass</div>
+        <div class="value" id="massText">0</div>
+      </div>
+      <div class="pill">
+        <div class="label">Run Time</div>
+        <div class="value" id="timerText">00:00.00</div>
+      </div>
+      <div class="pill">
+        <div class="label">Domination</div>
+        <div class="value" id="domText">0%</div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="mini">
+        <canvas id="minimap" width="292" height="292"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-timer hidden" id="gameTimer">
+    <span class="label">Game Timer</span>
+    <span class="game-timer-value" id="gameTimerText">00:00.00</span>
+  </div>
+
+  <div class="overlay" id="menu">
+    <div class="menu-shell shop-open" id="menuShell">
+      <div class="screen menu-screen">
+        <div class="menu-view" id="menuMainView">
+          <div class="player-preview" id="playerPreview" aria-hidden="true"></div>
+          <h1 aria-label="Onigario"><span class="title-word" aria-hidden="true"><span>O</span><span>n</span><span>i</span><span>g</span><span>a</span><span>r</span><span>i</span><span>o</span></span></h1>
+
+          <div class="controls" id="menuInstructions">
+            <div class="control">
+              <div class="key">Mouse</div>
+              <p>Crawl toward the cursor. Upgrade speed between runs.</p>
+            </div>
+            <div class="control">
+              <div class="key">Hold Click</div>
+              <p>Spend boost charge for a short burst. Upgrade length and power.</p>
+            </div>
+            <div class="control">
+              <div class="key">Space</div>
+              <p>Split half your mass toward the cursor. Re-merge after a delay.</p>
+            </div>
+          </div>
+
+          <div class="setup-row">
+            <input id="nameInput" class="name-input" maxlength="16" value="Oni" placeholder="Name your blob..." />
+            <button class="tip-button" id="tipsBtn" type="button">Tips: On</button>
+          </div>
+
+          <button id="startBtn">Play</button>
+          <p class="mobile-help">On touch screens: drag to move, double tap to split, hold one finger to boost.</p>
+          <button class="menu-icon-button settings-open" id="settingsBtn" type="button" aria-label="Open settings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2.1 2.1 0 0 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.65V21.3a2.1 2.1 0 0 1-4.2 0v-.06a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-1.98.36l-.04.04a2.1 2.1 0 0 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 3.8 15a1.8 1.8 0 0 0-1.65-1.1H2.1a2.1 2.1 0 0 1 0-4.2h.06A1.8 1.8 0 0 0 3.8 8.6a1.8 1.8 0 0 0-.36-1.98l-.04-.04a2.1 2.1 0 0 1 2.97-2.97l.04.04a1.8 1.8 0 0 0 1.98.36 1.8 1.8 0 0 0 1.1-1.65V2.3a2.1 2.1 0 0 1 4.2 0v.06a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 1.98-.36l.04-.04a2.1 2.1 0 0 1 2.97 2.97l-.04.04a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.1h.06a2.1 2.1 0 0 1 0 4.2h-.06A1.8 1.8 0 0 0 19.4 15Z" />
+            </svg>
+          </button>
+        </div>
+        <div class="settings-panel hidden" id="settingsPanel" role="dialog" aria-label="Settings">
+          <div class="settings-head">
+            <div class="settings-title">Settings</div>
+            <button class="settings-close" id="settingsCloseBtn" type="button" aria-label="Back to menu">Back</button>
+          </div>
+          <label class="settings-row">
+            <input id="disableShakeInput" type="checkbox" />
+            <span>
+              <span class="settings-label">Disable screen shake</span>
+              <p class="settings-help">Turns off hit and impact camera shake.</p>
+            </span>
+          </label>
+          <div class="settings-row">
+            <span></span>
+            <label>
+              <span class="settings-label">Enemy names</span>
+              <p class="settings-help">Comma-separated list. Example: Mochi, Gloom, Nobu. Leave blank to use the default names.</p>
+              <textarea class="settings-textarea" id="enemyNamesInput" spellcheck="false"></textarea>
+            </label>
+          </div>
+          <div class="settings-row">
+            <span></span>
+            <div>
+              <span class="settings-label">Progress</span>
+              <p class="settings-help">Reset shards, upgrades, best time, and campaign timer.</p>
+              <button class="settings-reset" id="resetProgressBtn" type="button">Reset Progress</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="shop-toggle" id="shopToggle" type="button" aria-label="Toggle shop"></button>
+      <div class="shop-drawer" id="shopDrawer">
+        <div class="shop-inner">
+          <div class="shop-head">
+            <div class="shop-title">Shard Shop</div>
+            <div class="wallet"><span class="label">Shards</span><span id="shardsText">0</span></div>
+          </div>
+          <div class="upgrade-grid" id="upgradeGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="endScreen">
+    <div class="end-shell">
+      <div class="screen">
+        <h1 id="endTitle">Victory</h1>
+        <p class="subtitle" id="endSubtitle">You swallowed the map.</p>
+        <div class="result-stats" id="statsBox"></div>
+        <button id="restartBtn">Play Again</button>
+        <button class="ghost" id="menuBtn">Menu</button>
+      </div>
+      <div class="end-shop hidden" id="endShop">
+        <button class="shop-toggle" id="endShopToggle" type="button" aria-label="Toggle shop"></button>
+        <div class="shop-drawer" id="endShopDrawer">
+          <div class="shop-inner">
+            <div class="shop-head">
+              <div class="shop-title">Shard Shop</div>
+              <div class="wallet"><span class="label">Shards</span><span id="endShardsText">0</span></div>
+            </div>
+            <div class="upgrade-grid" id="endUpgradeGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="congratsScreen">
+    <div class="screen">
+      <h1>Congrats</h1>
+      <p class="subtitle" id="congratsSubtitle">All upgrades maxed. Onigario is complete.</p>
+      <div class="controls" id="congratsStats"></div>
+      <button id="congratsMenuBtn">Return to Menu</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Tip</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const mini = document.getElementById("minimap");
+  const mctx = mini.getContext("2d");
+
+  const hud = document.getElementById("hud");
+  const menu = document.getElementById("menu");
+  const endScreen = document.getElementById("endScreen");
+  const congratsScreen = document.getElementById("congratsScreen");
+  const gameTimer = document.getElementById("gameTimer");
+  const gameTimerText = document.getElementById("gameTimerText");
+  const menuShell = document.getElementById("menuShell");
+  const menuMainView = document.getElementById("menuMainView");
+  const menuInstructions = document.getElementById("menuInstructions");
+  const massText = document.getElementById("massText");
+  const timerText = document.getElementById("timerText");
+  const domText = document.getElementById("domText");
+  const statsBox = document.getElementById("statsBox");
+  const congratsSubtitle = document.getElementById("congratsSubtitle");
+  const congratsStats = document.getElementById("congratsStats");
+  const endTitle = document.getElementById("endTitle");
+  const endSubtitle = document.getElementById("endSubtitle");
+  const toast = document.getElementById("toast");
+  const nameInput = document.getElementById("nameInput");
+  const tipsBtn = document.getElementById("tipsBtn");
+  const playerPreview = document.getElementById("playerPreview");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsPanel = document.getElementById("settingsPanel");
+  const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+  const disableShakeInput = document.getElementById("disableShakeInput");
+  const enemyNamesInput = document.getElementById("enemyNamesInput");
+  const shardsText = document.getElementById("shardsText");
+  const upgradeGrid = document.getElementById("upgradeGrid");
+  const shopToggle = document.getElementById("shopToggle");
+  const resetProgressBtn = document.getElementById("resetProgressBtn");
+  const endShop = document.getElementById("endShop");
+  const endShopToggle = document.getElementById("endShopToggle");
+  const endShardsText = document.getElementById("endShardsText");
+  const endUpgradeGrid = document.getElementById("endUpgradeGrid");
+
+  const WORLD = 4400;
+  const FOOD_COUNT = 1050;
+  const ENEMY_COUNT = 38;
+  const SPATIAL_CELL = 320;
+  const FOOD_MAX_R = 7;
+  const AI_SENSE_RADIUS = 1520;
+  const AI_PREY_RADIUS = 1280;
+  const MAX_PARTICLES = 360;
+  const AURA_COUNT = 4;
+  const PLAYER_CRUISE_BASE = 0.16;
+  const PLAYER_CRUISE_STEP = 0.22;
+  const PLAYER_BOOST_MULT_BASE = 1.14;
+  const PLAYER_BOOST_MULT_STEP = 0.16;
+  const PLAYER_BOOST_TARGET_BASE = 240;
+  const PLAYER_BOOST_TARGET_STEP = 115;
+  const BOOST_UNLOCK_AT = 0.34;
+  const SPLIT_LAUNCH_BASE = 920;
+  const SPLIT_LAUNCH_TIME = 0.58;
+  const SPLIT_SPAWN_GAP = 14;
+  const PELLET_MULTIPLIER_MAX = 4;
+  const PELLET_MULTIPLIER_CURVE = 1.6;
+  const WIN_DOMINATION = 88;
+  const PLAYER_COLOR_A = "#ff4d7d";
+  const PLAYER_COLOR_B = "#ffb84d";
+
+  const UPGRADE_DEFS = [
+    { id: "speed", label: "Base Speed", cost: 6, max: 16 },
+    { id: "pelletMultiplier", label: "Pellet Multiplier", cost: 7, max: 16 },
+    { id: "boostPower", label: "Boost Strength", cost: 8, max: 16 },
+    { id: "boostTank", label: "Boost Length", cost: 8, max: 16 }
+  ];
+  const DEFAULT_ENEMY_NAMES = ["Mochi", "Gloom", "Nobu", "Yuzu", "Kuro", "Boba", "Miso", "Nori"];
+  const DEFAULT_UPGRADES = {
+    speed: 1,
+    pelletMultiplier: 1,
+    boostPower: 1,
+    boostTank: 1
+  };
+  const DEFAULT_SETTINGS = {
+    disableShake: false,
+    enemyNames: DEFAULT_ENEMY_NAMES.join(", ")
+  };
+
+  let W = 0;
+  let H = 0;
+  let dpr = 1;
+  let state = "menu";
+  let lastTime = performance.now();
+  let startTime = 0;
+  let elapsed = 0;
+  let shake = 0;
+  let splitCooldown = 0;
+  let playerName = "Oni";
+  let tipsEnabled = true;
+  let nextTipAt = 120000;
+  let enemySpawnTimer = 0;
+  let dangerSpawnTimer = 0;
+  let boostCharge = 1;
+  let boostLocked = false;
+  let shards = 0;
+  let upgrades = { ...DEFAULT_UPGRADES };
+  let settings = { ...DEFAULT_SETTINGS };
+  let gameStartedAt = 0;
+  let gameCompletedAt = 0;
+  let gamesStarted = 0;
+  let foods = [];
+  let enemies = [];
+  let playerCells = [];
+  let particles = [];
+  let auras = [];
+  let foodGrid = new Map();
+  let enemyGrid = new Map();
+  let frameId = 0;
+  let camera = { x: WORLD / 2, y: WORLD / 2, zoom: 1 };
+  let mouse = { x: 0, y: 0, worldX: WORLD / 2, worldY: WORLD / 2, down: false };
+  let stats = {
+    pellets: 0,
+    enemies: 0,
+    biggestEat: 0,
+    splits: 0
+  };
+  let tipIndex = 0;
+
+  const tips = [
+    "Big enemies chase. Small enemies flee. Medium enemies panic dramatically.",
+    "Every run pays shards. Spend them on speed, size, and better boost.",
+    "Split-shot can snipe weak enemies, but it makes you easier to eat for a few seconds.",
+    "Red-ring hunter blobs spawn as you grow. They are not decoration. They are problems.",
+    "Win by reaching 88% domination."
+  ];
+
+  function resize() {
+    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    W = Math.floor(window.innerWidth);
+    H = Math.floor(window.innerHeight);
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+
+  function rand(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function distanceSq(a, b) {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
+  }
+
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function gridCoord(v) {
+    return Math.floor(v / SPATIAL_CELL);
+  }
+
+  function gridKey(x, y) {
+    return x + "," + y;
+  }
+
+  function buildSpatialGrid(items) {
+    const grid = new Map();
+    for (const item of items) {
+      const key = gridKey(gridCoord(item.x), gridCoord(item.y));
+      const bucket = grid.get(key);
+      if (bucket) bucket.push(item);
+      else grid.set(key, [item]);
+    }
+    return grid;
+  }
+
+  function querySpatialGrid(grid, x, y, radius) {
+    const results = [];
+    const minX = gridCoord(x - radius);
+    const maxX = gridCoord(x + radius);
+    const minY = gridCoord(y - radius);
+    const maxY = gridCoord(y + radius);
+
+    for (let gx = minX; gx <= maxX; gx++) {
+      for (let gy = minY; gy <= maxY; gy++) {
+        const bucket = grid.get(gridKey(gx, gy));
+        if (bucket) results.push(...bucket);
+      }
+    }
+    return results;
+  }
+
+  function visibleWorldBounds(pad = 0) {
+    return {
+      left: camera.x - W / 2 / camera.zoom - pad,
+      right: camera.x + W / 2 / camera.zoom + pad,
+      top: camera.y - H / 2 / camera.zoom - pad,
+      bottom: camera.y + H / 2 / camera.zoom + pad
+    };
+  }
+
+  function isVisibleCircle(item, bounds, pad = 0) {
+    const r = item.r + pad;
+    return item.x + r >= bounds.left &&
+      item.x - r <= bounds.right &&
+      item.y + r >= bounds.top &&
+      item.y - r <= bounds.bottom;
+  }
+
+  function recycleFood(food) {
+    const next = randomFood();
+    food.x = next.x;
+    food.y = next.y;
+    food.mass = next.mass;
+    food.r = next.r;
+    food.color = next.color;
+    food.pulse = next.pulse;
+    food.recycledFrame = frameId;
+  }
+
+  function randomAura(delay = 0) {
+    const colors = [
+      { fill: "#ff4d7d", map: "rgba(255,77,125,0.72)" },
+      { fill: "#52ffca", map: "rgba(82,255,202,0.68)" },
+      { fill: "#7a5cff", map: "rgba(122,92,255,0.68)" },
+      { fill: "#ffb84d", map: "rgba(255,184,77,0.66)" },
+      { fill: "#49d8ff", map: "rgba(73,216,255,0.64)" }
+    ];
+    const color = colors[(Math.random() * colors.length) | 0];
+    return {
+      x: rand(420, WORLD - 420),
+      y: rand(420, WORLD - 420),
+      radius: rand(520, 940),
+      age: -delay,
+      grow: rand(5.5, 11),
+      hold: rand(10, 22),
+      shrink: rand(6, 12),
+      fill: color.fill,
+      map: color.map
+    };
+  }
+
+  function auraPhase(aura) {
+    if (aura.age < 0) return { scale: 0, alpha: 0 };
+    if (aura.age < aura.grow) {
+      const t = aura.age / aura.grow;
+      return { scale: t * t * (3 - 2 * t), alpha: 0.20 * t };
+    }
+    if (aura.age < aura.grow + aura.hold) {
+      const t = (aura.age - aura.grow) / aura.hold;
+      return { scale: 1 + Math.sin(t * Math.PI * 2) * 0.035, alpha: 0.20 };
+    }
+    const t = (aura.age - aura.grow - aura.hold) / aura.shrink;
+    const out = clamp(1 - t, 0, 1);
+    return { scale: out * out, alpha: 0.20 * out };
+  }
+
+  function updateAuras(dt) {
+    for (let i = 0; i < auras.length; i++) {
+      const aura = auras[i];
+      aura.age += dt;
+      if (aura.age > aura.grow + aura.hold + aura.shrink) {
+        auras[i] = randomAura(rand(1.5, 7));
+      }
+    }
+  }
+
+  function formatTime(ms) {
+    const totalHundredths = Math.max(0, Math.floor(ms / 10));
+    const totalSeconds = Math.floor(totalHundredths / 100);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const hundredths = totalHundredths % 100;
+    return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0") + "." + String(hundredths).padStart(2, "0");
+  }
+
+  function formatGameTime(ms) {
+    const totalHundredths = Math.max(0, Math.floor(ms / 10));
+    const totalSeconds = Math.floor(totalHundredths / 100);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const hundredths = totalHundredths % 100;
+    const fraction = "." + String(hundredths).padStart(2, "0");
+    if (hours > 0) {
+      return hours + ":" + String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0") + fraction;
+    }
+    return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0") + fraction;
+  }
+
+  function radiusFromMass(mass) {
+    return Math.sqrt(mass) * 4.25;
+  }
+
+  function massFromRadius(radius) {
+    return Math.pow(radius / 4.25, 2);
+  }
+
+  function cellSpeed(cell) {
+    // Stays quick even when huge; size should feel heavy, not sleepy.
+    return 1320 / (Math.sqrt(cell.mass) * 0.11 + 2.7);
+  }
+
+  function upgradeLevel(id) {
+    return upgrades[id] || 1;
+  }
+
+  function allUpgradesMaxed() {
+    return UPGRADE_DEFS.every(def => upgradeLevel(def.id) >= def.max);
+  }
+
+  function currentGameTimeMs() {
+    if (!gameStartedAt) return 0;
+    return (gameCompletedAt || Date.now()) - gameStartedAt;
+  }
+
+  function updateGameTimerUi() {
+    const hasStarted = gameStartedAt > 0;
+    gameTimerText.textContent = formatGameTime(currentGameTimeMs());
+    gameTimer.classList.toggle("hidden", !hasStarted || gameCompletedAt > 0);
+  }
+
+  function updateMenuVisibility() {
+    menuInstructions.classList.toggle("hidden", gamesStarted >= 3);
+  }
+
+  function startGameTimer() {
+    if (!gameStartedAt && !gameCompletedAt) {
+      gameStartedAt = Date.now();
+      saveMeta();
+    }
+    updateGameTimerUi();
+  }
+
+  function playerCruiseMultiplier() {
+    return PLAYER_CRUISE_BASE + (upgradeLevel("speed") - 1) * PLAYER_CRUISE_STEP;
+  }
+
+  function playerStartMass() {
+    return massFromRadius(1);
+  }
+
+  function pelletMultiplier() {
+    const level = upgradeLevel("pelletMultiplier");
+    const progress = (level - 1) / 15;
+    return 1 + (PELLET_MULTIPLIER_MAX - 1) * Math.pow(progress, PELLET_MULTIPLIER_CURVE);
+  }
+
+  function playerBoostMultiplier(baseSpeed) {
+    const level = upgradeLevel("boostPower");
+    const minMult = PLAYER_BOOST_MULT_BASE + (level - 1) * PLAYER_BOOST_MULT_STEP;
+    const targetSpeed = PLAYER_BOOST_TARGET_BASE + (level - 1) * PLAYER_BOOST_TARGET_STEP;
+    return Math.max(minMult, targetSpeed / Math.max(1, baseSpeed));
+  }
+
+  function boostDrainRate() {
+    const seconds = 0.55 + upgradeLevel("boostTank") * 0.20;
+    return 1 / seconds;
+  }
+
+  function boostRefillRate() {
+    return 0.34 + (upgradeLevel("boostTank") - 1) * 0.035;
+  }
+
+  function upgradeCost(def) {
+    const level = upgradeLevel(def.id);
+    if (level >= def.max) return Infinity;
+    return Math.floor(def.cost * Math.pow(level, 1.55));
+  }
+
+  function hasAffordableUpgrade() {
+    return UPGRADE_DEFS.some(def => upgradeLevel(def.id) < def.max && shards >= upgradeCost(def));
+  }
+
+  function parsedEnemyNames() {
+    const names = settings.enemyNames
+      .split(",")
+      .map(name => name.trim())
+      .filter(Boolean)
+      .slice(0, 48);
+    return names.length ? names : DEFAULT_ENEMY_NAMES;
+  }
+
+  function applyEnemyNamesToCurrentRun() {
+    const names = parsedEnemyNames();
+    enemies.forEach((enemy, index) => {
+      enemy.name = names[index % names.length];
+    });
+  }
+
+  function loadSettings() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("onigarioSettings") || "{}");
+      settings = {
+        ...DEFAULT_SETTINGS,
+        disableShake: Boolean(stored.disableShake),
+        enemyNames: typeof stored.enemyNames === "string" ? stored.enemyNames : DEFAULT_SETTINGS.enemyNames
+      };
+    } catch {
+      settings = { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem("onigarioSettings", JSON.stringify(settings));
+  }
+
+  function syncSettingsUi() {
+    disableShakeInput.checked = settings.disableShake;
+    enemyNamesInput.value = settings.enemyNames;
+  }
+
+  function openSettingsView() {
+    menuMainView.classList.add("hidden");
+    settingsPanel.classList.remove("hidden");
+    menuShell.classList.add("settings-view-open");
+  }
+
+  function closeSettingsView() {
+    settingsPanel.classList.add("hidden");
+    menuMainView.classList.remove("hidden");
+    menuShell.classList.remove("settings-view-open");
+  }
+
+  function updatePlayerPreview() {
+    playerPreview.style.setProperty("--blob-size", "72px");
+  }
+
+  function loadMeta() {
+    shards = Math.max(0, Number(localStorage.getItem("onigarioShards") || 0));
+    gameStartedAt = Math.max(0, Number(localStorage.getItem("onigarioGameStartedAt") || 0));
+    gameCompletedAt = Math.max(0, Number(localStorage.getItem("onigarioGameCompletedAt") || 0));
+    gamesStarted = Math.max(0, Number(localStorage.getItem("onigarioGamesStarted") || 0));
+    try {
+      const stored = JSON.parse(localStorage.getItem("onigarioUpgrades") || "{}");
+      upgrades = { ...DEFAULT_UPGRADES };
+      for (const def of UPGRADE_DEFS) {
+        const storedLevel = def.id === "pelletMultiplier" ? stored.pelletMultiplier || stored.startSize : stored[def.id];
+        upgrades[def.id] = clamp(Number(storedLevel || 1), 1, def.max);
+      }
+    } catch {
+      upgrades = { ...DEFAULT_UPGRADES };
+    }
+  }
+
+  function saveMeta() {
+    localStorage.setItem("onigarioShards", String(Math.floor(shards)));
+    localStorage.setItem("onigarioUpgrades", JSON.stringify(upgrades));
+    localStorage.setItem("onigarioGameStartedAt", String(Math.floor(gameStartedAt)));
+    localStorage.setItem("onigarioGameCompletedAt", String(Math.floor(gameCompletedAt)));
+    localStorage.setItem("onigarioGamesStarted", String(Math.floor(gamesStarted)));
+  }
+
+  function resetProgress() {
+    if (!confirm("Reset all Onigario progress and start over?")) return;
+    shards = 0;
+    upgrades = { ...DEFAULT_UPGRADES };
+    gameStartedAt = 0;
+    gameCompletedAt = 0;
+    gamesStarted = 0;
+    localStorage.removeItem("onigarioBest");
+    saveMeta();
+    state = "menu";
+    hud.classList.add("hidden");
+    menu.classList.remove("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.add("hidden");
+    menuShell.classList.add("shop-open");
+    closeSettingsView();
+    playerCells = [];
+    enemies = [];
+    particles = [];
+    renderUpgradeShop();
+    showToast("Progress reset.");
+  }
+
+  function createUpgradeCard(def) {
+    const level = upgradeLevel(def.id);
+    const cost = upgradeCost(def);
+    const maxed = level >= def.max;
+    const valueText = def.id === "pelletMultiplier" ? ` - ${pelletMultiplier().toFixed(2)}x` : "";
+    const card = document.createElement("div");
+    card.className = "upgrade-card";
+    card.innerHTML = `
+      <div class="upgrade-title">${def.label}</div>
+      <div class="upgrade-level">Level ${level}${valueText}${maxed ? " MAX" : ""}</div>
+      <button class="upgrade-buy" type="button" data-upgrade="${def.id}" ${maxed || shards < cost ? "disabled" : ""}>
+        ${maxed ? "Maxed" : cost + " shards"}
+      </button>
+    `;
+    return card;
+  }
+
+  function renderUpgradeShop() {
+    const shardCount = Math.floor(shards).toLocaleString();
+    const affordable = hasAffordableUpgrade();
+    shardsText.textContent = shardCount;
+    endShardsText.textContent = shardCount;
+    updateGameTimerUi();
+    updateMenuVisibility();
+    updatePlayerPreview();
+    shopToggle.classList.toggle("upgrade-ready", affordable);
+    endShopToggle.classList.toggle("upgrade-ready", affordable);
+
+    for (const grid of [upgradeGrid, endUpgradeGrid]) {
+      grid.innerHTML = "";
+      for (const def of UPGRADE_DEFS) {
+        grid.appendChild(createUpgradeCard(def));
+      }
+    }
+  }
+
+  function buyUpgrade(id) {
+    const def = UPGRADE_DEFS.find(item => item.id === id);
+    if (!def) return;
+    const cost = upgradeCost(def);
+    if (upgradeLevel(id) >= def.max || shards < cost) return;
+    shards -= cost;
+    upgrades[id]++;
+    saveMeta();
+    renderUpgradeShop();
+    showToast(def.label + " upgraded.");
+    finishCampaignIfComplete();
+  }
+
+  function finishCampaignIfComplete() {
+    if (!gameStartedAt || gameCompletedAt || !allUpgradesMaxed()) return false;
+    gameCompletedAt = Date.now();
+    saveMeta();
+    renderUpgradeShop();
+    showCongratsScreen();
+    return true;
+  }
+
+  function showCongratsScreen() {
+    const finalGameTime = formatGameTime(currentGameTimeMs());
+    state = "complete";
+    hud.classList.add("hidden");
+    menu.classList.add("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.remove("hidden");
+    updateGameTimerUi();
+
+    congratsSubtitle.textContent = `All level 16 upgrades unlocked in ${finalGameTime}. Onigario is complete.`;
+    congratsStats.innerHTML = "";
+    const finalStats = [
+      ["Game Time", finalGameTime],
+      ["Completion", "100%"],
+      ["Shards Left", Math.floor(shards).toLocaleString()],
+      ["Best Run", localStorage.getItem("onigarioBest") ? formatTime(Number(localStorage.getItem("onigarioBest"))) : "None"]
+    ];
+
+    for (const [label, value] of finalStats) {
+      const card = document.createElement("div");
+      card.className = "control";
+      card.innerHTML = `<div class="key">${label}</div><p style="font-size:22px;color:white;font-weight:900">${value}</p>`;
+      congratsStats.appendChild(card);
+    }
+  }
+
+  function runShardReward(won, mass, domination) {
+    const pelletPay = stats.pellets / 4;
+    const enemyPay = stats.enemies * 18;
+    const sizePay = Math.sqrt(Math.max(0, mass)) * 0.8;
+    const dominationPay = domination * 0.75;
+    return Math.max(1, Math.floor(pelletPay + enemyPay + sizePay + dominationPay + (won ? 120 : 0)));
+  }
+
+  function totalPlayerMass() {
+    return playerCells.reduce((sum, c) => sum + c.mass, 0);
+  }
+
+  function enemyMass() {
+    return enemies.reduce((sum, e) => sum + e.mass, 0);
+  }
+
+  function playerCenter() {
+    const total = totalPlayerMass();
+    if (total <= 0 || playerCells.length === 0) return { x: WORLD / 2, y: WORLD / 2 };
+    let x = 0;
+    let y = 0;
+    for (const c of playerCells) {
+      x += c.x * c.mass;
+      y += c.y * c.mass;
+    }
+    return { x: x / total, y: y / total };
+  }
+
+  function screenToWorld(sx, sy) {
+    return {
+      x: (sx - W / 2) / camera.zoom + camera.x,
+      y: (sy - H / 2) / camera.zoom + camera.y
+    };
+  }
+
+  function updateMouseWorld() {
+    const w = screenToWorld(mouse.x, mouse.y);
+    mouse.worldX = w.x;
+    mouse.worldY = w.y;
+  }
+
+  function randomFood() {
+    const huePick = Math.random();
+    let color = "#52ffca";
+    if (huePick < 0.33) color = "#ffb84d";
+    else if (huePick < 0.66) color = "#9b7cff";
+    return {
+      x: rand(90, WORLD - 90),
+      y: rand(90, WORLD - 90),
+      mass: rand(3.2, 8.6),
+      r: rand(3.2, 6.8),
+      color,
+      pulse: rand(0, Math.PI * 2)
+    };
+  }
+
+  function makeEnemy(i) {
+    const mass = rand(14, 118) * (i < 4 ? 1.55 : 1);
+    const enemyNames = parsedEnemyNames();
+    const colors = [
+      ["#7a5cff", "#49d8ff"],
+      ["#ff5dd7", "#7a5cff"],
+      ["#3fffb8", "#2378ff"],
+      ["#ff7a59", "#ffca59"],
+      ["#e85cff", "#ff4d7d"]
+    ];
+    return {
+      id: i,
+      x: rand(240, WORLD - 240),
+      y: rand(240, WORLD - 240),
+      vx: rand(-20, 20),
+      vy: rand(-20, 20),
+      mass,
+      r: radiusFromMass(mass),
+      color: colors[i % colors.length],
+      mood: "wander",
+      targetX: rand(0, WORLD),
+      targetY: rand(0, WORLD),
+      think: rand(0.2, 1.4),
+      wobble: rand(0, 9),
+      name: enemyNames[i % enemyNames.length],
+      kind: "normal",
+      aggression: rand(0.9, 1.2)
+    };
+  }
+
+  function enemySpawnBlocked(x, y, r) {
+    for (const other of enemies) {
+      const minDistance = (r + other.r) * 1.08 + 12;
+      const dx = x - other.x;
+      const dy = y - other.y;
+      if (dx * dx + dy * dy < minDistance * minDistance) return true;
+    }
+    return false;
+  }
+
+  function findOpenEnemyPosition(r, makeCandidate, attempts = 48) {
+    for (let i = 0; i < attempts; i++) {
+      const spot = makeCandidate(i);
+      const x = clamp(spot.x, r, WORLD - r);
+      const y = clamp(spot.y, r, WORLD - r);
+      if (!enemySpawnBlocked(x, y, r)) return { x, y };
+    }
+    return null;
+  }
+
+
+  function spawnEnemyNearPlayer(kind = "normal") {
+    const center = playerCenter();
+    const viewRadius = Math.max(W, H) / Math.max(0.35, camera.zoom) * 0.72;
+    const pMass = Math.max(58, totalPlayerMass());
+    const avgCellMass = pMass / Math.max(1, playerCells.length);
+
+    let mass;
+    if (kind === "hunter") {
+      // Real threats: usually bigger than one player cell, sometimes bigger than total mass.
+      mass = rand(avgCellMass * 0.95, pMass * 1.22);
+    } else if (kind === "prey") {
+      mass = rand(Math.max(16, avgCellMass * 0.18), Math.max(32, avgCellMass * 0.62));
+    } else {
+      mass = rand(Math.max(22, avgCellMass * 0.35), Math.max(62, pMass * 0.82));
+    }
+
+    const e = makeEnemy(enemies.length + Math.floor(rand(1000, 9999)));
+    e.mass = clamp(mass, 16, pMass * 1.35 + 160);
+    e.r = radiusFromMass(e.mass);
+    const spot = findOpenEnemyPosition(e.r, () => {
+      const angle = rand(0, Math.PI * 2);
+      const distance = rand(viewRadius * 0.95, viewRadius * 1.55);
+      return {
+        x: center.x + Math.cos(angle) * distance,
+        y: center.y + Math.sin(angle) * distance
+      };
+    }, 64);
+    if (!spot) return;
+    const angleFromPlayer = Math.atan2(spot.y - center.y, spot.x - center.x);
+    e.x = spot.x;
+    e.y = spot.y;
+    e.vx = -Math.cos(angleFromPlayer) * rand(30, 120);
+    e.vy = -Math.sin(angleFromPlayer) * rand(30, 120);
+    e.kind = kind;
+    e.aggression = kind === "hunter" ? rand(1.18, 1.55) : kind === "prey" ? rand(0.72, 0.95) : rand(0.92, 1.18);
+    e.targetX = center.x;
+    e.targetY = center.y;
+    enemies.push(e);
+
+    if (kind === "hunter" && tipsEnabled) {
+      showToast("A hunter blob entered the burrow. Stay sharp.");
+    }
+  }
+
+  function desiredEnemyCount() {
+    const mass = totalPlayerMass();
+    const base = 34;
+    const scaled = Math.floor(Math.sqrt(mass) / 4.2);
+    return clamp(base + scaled, 38, 72);
+  }
+
+  function updateEnemySpawns(dt) {
+    enemySpawnTimer -= dt;
+    dangerSpawnTimer -= dt;
+
+    const targetCount = desiredEnemyCount();
+    while (enemies.length < Math.min(targetCount, 72) && enemySpawnTimer <= 0) {
+      const domination = getDomination();
+      const kind = domination > 52 && Math.random() < 0.42 ? "hunter" : Math.random() < 0.35 ? "prey" : "normal";
+      spawnEnemyNearPlayer(kind);
+      enemySpawnTimer += rand(0.65, 1.45);
+    }
+
+    // Even if the population is healthy, periodically inject a threat once the player is big.
+    if (dangerSpawnTimer <= 0 && totalPlayerMass() > 360 && enemies.length < 78) {
+      spawnEnemyNearPlayer("hunter");
+      dangerSpawnTimer = rand(18, 32);
+    }
+  }
+
+  function resetGame() {
+    startGameTimer();
+    if (finishCampaignIfComplete()) return;
+    gamesStarted++;
+    saveMeta();
+    updateMenuVisibility();
+    playerName = (nameInput.value || "Oni").trim().slice(0, 16) || "Oni";
+    tipsEnabled = !tipsBtn.classList.contains("off");
+    nextTipAt = 120000;
+    const startMass = playerStartMass();
+    foods = Array.from({ length: FOOD_COUNT }, randomFood);
+    enemies = [];
+    for (let i = 0; i < ENEMY_COUNT; i++) {
+      const enemy = makeEnemy(i);
+      const spot = findOpenEnemyPosition(enemy.r, () => ({
+        x: rand(240, WORLD - 240),
+        y: rand(240, WORLD - 240)
+      }), 80);
+      if (!spot) continue;
+      enemy.x = spot.x;
+      enemy.y = spot.y;
+      enemies.push(enemy);
+    }
+    foodGrid = buildSpatialGrid(foods);
+    enemyGrid = buildSpatialGrid(enemies);
+    auras = Array.from({ length: AURA_COUNT }, (_, i) => randomAura(i * 3.5));
+
+    playerCells = [{
+      x: WORLD / 2,
+      y: WORLD / 2,
+      vx: 0,
+      vy: 0,
+      mass: startMass,
+      r: radiusFromMass(startMass),
+      mergeTimer: 0,
+      launchTimer: 0,
+      colorA: PLAYER_COLOR_A,
+      colorB: PLAYER_COLOR_B,
+      main: true
+    }];
+
+    particles = [];
+    camera = { x: WORLD / 2, y: WORLD / 2, zoom: 1 };
+    mouse = { x: W / 2, y: H / 2, worldX: WORLD / 2, worldY: WORLD / 2, down: false };
+    stats = { pellets: 0, enemies: 0, biggestEat: 0, splits: 0 };
+    splitCooldown = 0;
+    boostCharge = 1;
+    boostLocked = false;
+    enemySpawnTimer = 0;
+    dangerSpawnTimer = 14;
+    shake = 0;
+    elapsed = 0;
+    startTime = performance.now();
+    lastTime = performance.now();
+    state = "playing";
+    hud.classList.remove("hidden");
+    menu.classList.add("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.add("hidden");
+    if (tipsEnabled) showToast("Eat tiny dots first. The oni empire starts smol.");
+  }
+
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("show"), 2600);
+  }
+
+  function spawnBurst(x, y, color, count, strength = 1) {
+    if (particles.length >= MAX_PARTICLES) return;
+    count = Math.min(count, MAX_PARTICLES - particles.length);
+    for (let i = 0; i < count; i++) {
+      const a = rand(0, Math.PI * 2);
+      const s = rand(40, 220) * strength;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: rand(0.35, 0.85),
+        maxLife: rand(0.35, 0.85),
+        size: rand(2, 7) * strength,
+        color
+      });
+    }
+  }
+
+  function pointerMove(clientX, clientY) {
+    mouse.x = clientX;
+    mouse.y = clientY;
+    updateMouseWorld();
+  }
+
+  window.addEventListener("mousemove", e => pointerMove(e.clientX, e.clientY));
+  window.addEventListener("mousedown", e => {
+    if (e.button === 0) mouse.down = true;
+  });
+  window.addEventListener("mouseup", e => {
+    if (e.button === 0) mouse.down = false;
+  });
+
+  window.addEventListener("touchstart", e => {
+    if (state !== "playing") return;
+    const t = e.touches[0];
+    pointerMove(t.clientX, t.clientY);
+    mouse.down = true;
+    if (e.touches.length >= 2) splitPlayer();
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener("touchmove", e => {
+    if (state !== "playing") return;
+    const t = e.touches[0];
+    pointerMove(t.clientX, t.clientY);
+    e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener("touchend", () => {
+    mouse.down = false;
+  });
+
+  let lastTap = 0;
+  window.addEventListener("pointerdown", e => {
+    if (e.pointerType === "touch") {
+      const now = performance.now();
+      if (now - lastTap < 280 && state === "playing") splitPlayer();
+      lastTap = now;
+    }
+  });
+
+  window.addEventListener("keydown", e => {
+    const typing = e.target.matches("input, textarea, select") || e.target.isContentEditable;
+    const settingsOpen = menuShell.classList.contains("settings-view-open");
+    if (!typing && !settingsOpen && !e.repeat && e.code === "KeyR") {
+      e.preventDefault();
+      resetGame();
+      return;
+    }
+    if (e.code === "Space") {
+      e.preventDefault();
+      if (state === "playing") splitPlayer();
+    }
+    if (e.code === "Escape") {
+      if (settingsOpen) {
+        closeSettingsView();
+      } else if (state === "playing") {
+        state = "paused";
+        showToast("Paused. Press Escape to resume.");
+      } else if (state === "paused") {
+        state = "playing";
+        lastTime = performance.now();
+        showToast("Back to the feast.");
+      }
+    }
+  });
+
+  document.getElementById("startBtn").addEventListener("click", resetGame);
+  document.getElementById("restartBtn").addEventListener("click", resetGame);
+  resetProgressBtn.addEventListener("click", resetProgress);
+  settingsBtn.addEventListener("click", () => {
+    openSettingsView();
+  });
+  settingsCloseBtn.addEventListener("click", () => {
+    closeSettingsView();
+  });
+  disableShakeInput.addEventListener("change", () => {
+    settings.disableShake = disableShakeInput.checked;
+    if (settings.disableShake) shake = 0;
+    saveSettings();
+  });
+  enemyNamesInput.addEventListener("input", () => {
+    settings.enemyNames = enemyNamesInput.value;
+    saveSettings();
+    applyEnemyNamesToCurrentRun();
+  });
+  shopToggle.addEventListener("click", () => {
+    menuShell.classList.toggle("shop-open");
+  });
+  endShopToggle.addEventListener("click", () => {
+    const opened = endShop.classList.toggle("shop-open");
+    endScreen.classList.toggle("end-shop-open", opened);
+  });
+  document.getElementById("menuBtn").addEventListener("click", () => {
+    state = "menu";
+    hud.classList.add("hidden");
+    menu.classList.remove("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.add("hidden");
+    closeSettingsView();
+    menuShell.classList.add("shop-open");
+    renderUpgradeShop();
+  });
+  document.getElementById("congratsMenuBtn").addEventListener("click", () => {
+    state = "menu";
+    hud.classList.add("hidden");
+    menu.classList.remove("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.add("hidden");
+    closeSettingsView();
+    menuShell.classList.add("shop-open");
+    renderUpgradeShop();
+  });
+  upgradeGrid.addEventListener("click", e => {
+    const button = e.target.closest("[data-upgrade]");
+    if (!button) return;
+    buyUpgrade(button.dataset.upgrade);
+  });
+  endUpgradeGrid.addEventListener("click", e => {
+    const button = e.target.closest("[data-upgrade]");
+    if (!button) return;
+    buyUpgrade(button.dataset.upgrade);
+  });
+
+  function syncTipsButton() {
+    tipsBtn.textContent = tipsEnabled ? "Tips: On" : "Tips: Off";
+    tipsBtn.classList.toggle("off", !tipsEnabled);
+  }
+
+  tipsBtn.addEventListener("click", () => {
+    tipsEnabled = !tipsEnabled;
+    syncTipsButton();
+    if (tipsEnabled) {
+      nextTipAt = elapsed + 120000;
+      showToast(tips[tipIndex++ % tips.length]);
+    } else {
+      showToast("Tips disabled. Pure chaos mode.");
+    }
+  });
+
+  syncTipsButton();
+  loadSettings();
+  syncSettingsUi();
+  loadMeta();
+  renderUpgradeShop();
+  if (gameStartedAt && !gameCompletedAt && allUpgradesMaxed()) finishCampaignIfComplete();
+
+  function splitPlayer() {
+    if (splitCooldown > 0 || playerCells.length >= 8) return;
+
+    let largest = null;
+    for (const c of playerCells) {
+      if (!largest || c.mass > largest.mass) largest = c;
+    }
+    if (!largest || largest.mass < 38) {
+      showToast("Need more mass before splitting.");
+      return;
+    }
+
+    updateMouseWorld();
+    const dx = mouse.worldX - largest.x;
+    const dy = mouse.worldY - largest.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = dx / len;
+    const ny = dy / len;
+    const newMass = largest.mass * 0.5;
+    largest.mass *= 0.5;
+    largest.r = radiusFromMass(largest.mass);
+    largest.mergeTimer = Math.max(largest.mergeTimer, 7.5);
+
+    const newRadius = radiusFromMass(newMass);
+    const spawnDistance = largest.r + newRadius + SPLIT_SPAWN_GAP;
+    const burst = SPLIT_LAUNCH_BASE / (Math.sqrt(newMass) * 0.06 + 1);
+    playerCells.push({
+      x: largest.x + nx * spawnDistance,
+      y: largest.y + ny * spawnDistance,
+      vx: largest.vx + nx * burst,
+      vy: largest.vy + ny * burst,
+      mass: newMass,
+      r: newRadius,
+      mergeTimer: 4.2,
+      launchTimer: SPLIT_LAUNCH_TIME,
+      colorA: PLAYER_COLOR_A,
+      colorB: PLAYER_COLOR_B,
+      main: false
+    });
+
+    stats.splits++;
+    splitCooldown = 0.42;
+    spawnBurst(largest.x, largest.y, "#ffb84d", 18, 1);
+  }
+
+  function updatePlayer(dt) {
+    updateMouseWorld();
+    splitCooldown = Math.max(0, splitCooldown - dt);
+
+    const total = totalPlayerMass();
+    const wantsBoost = mouse.down && total > 0.01;
+    const canBoost = wantsBoost && !boostLocked && boostCharge > 0;
+
+    if (canBoost) {
+      boostCharge = Math.max(0, boostCharge - boostDrainRate() * dt);
+      if (boostCharge <= 0) boostLocked = true;
+    } else {
+      boostCharge = Math.min(1, boostCharge + boostRefillRate() * dt);
+      if (boostLocked && boostCharge >= BOOST_UNLOCK_AT) boostLocked = false;
+    }
+
+    for (const cell of playerCells) {
+      cell.r = radiusFromMass(cell.mass);
+      cell.mergeTimer = Math.max(0, cell.mergeTimer - dt);
+      cell.launchTimer = Math.max(0, cell.launchTimer - dt);
+
+      const dx = mouse.worldX - cell.x;
+      const dy = mouse.worldY - cell.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = dx / len;
+      const ny = dy / len;
+
+      const base = cellSpeed(cell) * playerCruiseMultiplier();
+      const boost = canBoost ? playerBoostMultiplier(base) : 1;
+      const desiredVx = nx * base * boost;
+      const desiredVy = ny * base * boost;
+      const control = cell.launchTimer > 0 ? 1.2 : canBoost ? 8 : 5.5;
+
+      cell.vx += (desiredVx - cell.vx) * Math.min(1, control * dt);
+      cell.vy += (desiredVy - cell.vy) * Math.min(1, control * dt);
+
+      if (canBoost) {
+        if (Math.random() < 0.7) {
+          spawnBurst(cell.x - nx * cell.r * 0.65, cell.y - ny * cell.r * 0.65, "#ff4d7d", 1, 0.55);
+        }
+      }
+
+      cell.x += cell.vx * dt;
+      cell.y += cell.vy * dt;
+      cell.vx *= Math.pow(0.80, dt);
+      cell.vy *= Math.pow(0.80, dt);
+
+      cell.x = clamp(cell.x, cell.r, WORLD - cell.r);
+      cell.y = clamp(cell.y, cell.r, WORLD - cell.r);
+    }
+
+    mergePlayerCells();
+  }
+
+  function mergePlayerCells() {
+    for (let i = 0; i < playerCells.length; i++) {
+      for (let j = i + 1; j < playerCells.length; j++) {
+        const a = playerCells[i];
+        const b = playerCells[j];
+        if (a.mergeTimer > 0 || b.mergeTimer > 0) continue;
+
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < Math.max(a.r, b.r) * 0.82) {
+          const big = a.mass >= b.mass ? a : b;
+          const small = big === a ? b : a;
+          const total = big.mass + small.mass;
+          big.x = (big.x * big.mass + small.x * small.mass) / total;
+          big.y = (big.y * big.mass + small.y * small.mass) / total;
+          big.vx = (big.vx * big.mass + small.vx * small.mass) / total;
+          big.vy = (big.vy * big.mass + small.vy * small.mass) / total;
+          big.mass = total;
+          big.r = radiusFromMass(total);
+          playerCells.splice(playerCells.indexOf(small), 1);
+          spawnBurst(big.x, big.y, "#ffb84d", 8, 0.8);
+          i = -1;
+          break;
+        }
+      }
+    }
+  }
+
+  function updateEnemies(dt) {
+    const allPlayer = playerCells;
+    enemyGrid = buildSpatialGrid(enemies);
+    const senseRadiusSq = AI_SENSE_RADIUS * AI_SENSE_RADIUS;
+    const preyRadiusSq = AI_PREY_RADIUS * AI_PREY_RADIUS;
+
+    for (const enemy of enemies) {
+      enemy.r = radiusFromMass(enemy.mass);
+      enemy.think -= dt;
+      enemy.wobble += dt;
+
+      let target = null;
+      let mode = "wander";
+      let bestThreat = Infinity;
+      let bestPrey = Infinity;
+
+      const consider = other => {
+        const d2 = distanceSq(other, enemy);
+        if (d2 > senseRadiusSq) return;
+        if (other.mass > enemy.mass * 1.16 && d2 < bestThreat) {
+          bestThreat = d2;
+          target = other;
+          mode = "flee";
+        } else if (enemy.mass > other.mass * 1.12 && d2 < bestPrey && d2 < preyRadiusSq) {
+          bestPrey = d2;
+          target = other;
+          mode = "chase";
+        }
+      };
+
+      for (const p of allPlayer) consider(p);
+      for (const other of querySpatialGrid(enemyGrid, enemy.x, enemy.y, AI_SENSE_RADIUS)) {
+        if (other !== enemy) consider(other);
+      }
+
+      if (enemy.think <= 0) {
+        enemy.think = rand(0.4, 1.3);
+        if (mode === "wander") {
+          let nearestFood = null;
+          let nearestFoodDist = Infinity;
+          for (let k = 0; k < 42; k++) {
+            const food = foods[(Math.random() * foods.length) | 0];
+            const d = Math.hypot(food.x - enemy.x, food.y - enemy.y);
+            if (d < nearestFoodDist) {
+              nearestFood = food;
+              nearestFoodDist = d;
+            }
+          }
+          if (nearestFood && nearestFoodDist < 640) {
+            enemy.targetX = nearestFood.x;
+            enemy.targetY = nearestFood.y;
+          } else {
+            enemy.targetX = clamp(enemy.x + rand(-600, 600), 80, WORLD - 80);
+            enemy.targetY = clamp(enemy.y + rand(-600, 600), 80, WORLD - 80);
+          }
+        }
+      }
+
+      let tx = enemy.targetX;
+      let ty = enemy.targetY;
+      enemy.mood = mode;
+
+      if (target) {
+        if (mode === "flee") {
+          tx = enemy.x - (target.x - enemy.x);
+          ty = enemy.y - (target.y - enemy.y);
+        } else if (mode === "chase") {
+          tx = target.x;
+          ty = target.y;
+        }
+      }
+
+      if (target && mode === "chase" && enemy.kind === "hunter") {
+        tx += (target.vx || 0) * 0.55;
+        ty += (target.vy || 0) * 0.55;
+      }
+
+      const dx = tx - enemy.x;
+      const dy = ty - enemy.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = dx / len;
+      const ny = dy / len;
+
+      const speed = cellSpeed(enemy) * enemy.aggression * (mode === "flee" ? 1.52 : mode === "chase" ? 1.42 : 1.08);
+      enemy.vx += (nx * speed - enemy.vx) * Math.min(1, 2.2 * dt);
+      enemy.vy += (ny * speed - enemy.vy) * Math.min(1, 2.2 * dt);
+
+      enemy.x += enemy.vx * dt;
+      enemy.y += enemy.vy * dt;
+      enemy.vx *= Math.pow(0.90, dt);
+      enemy.vy *= Math.pow(0.90, dt);
+      enemy.x = clamp(enemy.x, enemy.r, WORLD - enemy.r);
+      enemy.y = clamp(enemy.y, enemy.r, WORLD - enemy.r);
+    }
+  }
+
+  function updateFood(dt) {
+    for (const f of foods) f.pulse += dt * 2.4;
+  }
+
+  function eatFoodByCells(cells, isPlayer) {
+    for (const cell of cells) {
+      const candidates = querySpatialGrid(foodGrid, cell.x, cell.y, cell.r + FOOD_MAX_R);
+      for (const f of candidates) {
+        if (f.recycledFrame === frameId) continue;
+        const dx = cell.x - f.x;
+        const dy = cell.y - f.y;
+        const eatRadius = cell.r + f.r;
+        if (dx * dx + dy * dy < eatRadius * eatRadius) {
+          cell.mass += f.mass * (isPlayer ? pelletMultiplier() : 1);
+          if (isPlayer) stats.pellets++;
+          spawnBurst(f.x, f.y, f.color, isPlayer ? 5 : 2, isPlayer ? 0.55 : 0.35);
+          recycleFood(f);
+        }
+      }
+    }
+  }
+
+  function canEat(big, small) {
+    if (big.mass <= small.mass * 1.12) return false;
+    const eatRadius = big.r - small.r * 0.18;
+    return eatRadius > 0 && distanceSq(big, small) < eatRadius * eatRadius;
+  }
+
+  function resolveEating() {
+    foodGrid = buildSpatialGrid(foods);
+    eatFoodByCells(playerCells, true);
+    eatFoodByCells(enemies, false);
+
+    // Player cells vs enemies.
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+      let enemyGone = false;
+
+      for (let j = playerCells.length - 1; j >= 0; j--) {
+        const p = playerCells[j];
+        if (canEat(p, e)) {
+          p.mass += e.mass * 0.92;
+          stats.enemies++;
+          stats.biggestEat = Math.max(stats.biggestEat, Math.round(e.mass));
+          spawnBurst(e.x, e.y, e.color[0], 34, Math.min(2.2, e.r / 50));
+          shake = Math.max(shake, Math.min(18, e.r / 5));
+          enemies.splice(i, 1);
+          enemyGone = true;
+          if (stats.enemies === 1) showToast("First enemy absorbed. Horrifying. Efficient.");
+          break;
+        } else if (canEat(e, p)) {
+          e.mass += p.mass * 0.9;
+          spawnBurst(p.x, p.y, PLAYER_COLOR_A, 28, Math.min(2, p.r / 45));
+          shake = Math.max(shake, 10);
+          playerCells.splice(j, 1);
+          if (playerCells.length === 0) {
+            finish(false);
+            return;
+          } else {
+            showToast("A split got eaten. Rebuild. Revenge arc.");
+          }
+        }
+      }
+      if (enemyGone) continue;
+    }
+
+    // Enemy vs enemy.
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        if (i === j || !enemies[i] || !enemies[j]) continue;
+        const a = enemies[i];
+        const b = enemies[j];
+        if (canEat(a, b)) {
+          a.mass += b.mass * 0.88;
+          spawnBurst(b.x, b.y, b.color[0], 12, 0.65);
+          enemies.splice(j, 1);
+          if (j < i) i--;
+        }
+      }
+    }
+  }
+
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= Math.pow(0.05, dt);
+      p.vy *= Math.pow(0.05, dt);
+    }
+  }
+
+  function updateCamera(dt) {
+    const center = playerCenter();
+    const mass = totalPlayerMass();
+    const targetZoom = clamp(1.12 - Math.sqrt(mass) / 95, 0.32, 1.05);
+    camera.x += (center.x - camera.x) * Math.min(1, 5 * dt);
+    camera.y += (center.y - camera.y) * Math.min(1, 5 * dt);
+    camera.zoom += (targetZoom - camera.zoom) * Math.min(1, 3 * dt);
+  }
+
+  function update(dt) {
+    if (state !== "playing") return;
+    frameId++;
+    elapsed = performance.now() - startTime;
+    updatePlayer(dt);
+    updateEnemies(dt);
+    updateEnemySpawns(dt);
+    updateFood(dt);
+    updateAuras(dt);
+    resolveEating();
+    updateParticles(dt);
+    updateCamera(dt);
+    updateHud();
+
+    if (tipsEnabled && elapsed >= nextTipAt) {
+      showToast(tips[tipIndex++ % tips.length]);
+      nextTipAt += 120000;
+    }
+
+    const domination = getDomination();
+    if (domination >= WIN_DOMINATION) {
+      finish(true);
+    }
+  }
+
+  function getDomination(playerMass = totalPlayerMass(), foeMass = enemyMass()) {
+    const p = playerMass;
+    const e = foeMass;
+    return p / Math.max(1, p + e) * 100;
+  }
+
+  function updateHud() {
+    const playerMass = totalPlayerMass();
+    const foeMass = enemyMass();
+    const domination = getDomination(playerMass, foeMass);
+    massText.textContent = playerMass < 10 ? playerMass.toFixed(1) : Math.round(playerMass).toLocaleString();
+    timerText.textContent = formatTime(elapsed);
+    domText.textContent = Math.floor(domination) + "%";
+  }
+
+  function finish(won) {
+    if (state !== "playing") return;
+    state = won ? "victory" : "gameover";
+    hud.classList.add("hidden");
+    endScreen.classList.remove("hidden");
+    congratsScreen.classList.add("hidden");
+
+    const finalTime = formatTime(elapsed);
+    const mass = Math.round(totalPlayerMass());
+    const dom = Math.floor(getDomination());
+    const earnedShards = runShardReward(won, mass, dom);
+    shards += earnedShards;
+    saveMeta();
+    renderUpgradeShop();
+    const oldBest = Number(localStorage.getItem("onigarioBest") || 0);
+    let bestText = "—";
+
+    if (won) {
+      if (!oldBest || elapsed < oldBest) {
+        localStorage.setItem("onigarioBest", String(Math.floor(elapsed)));
+        bestText = finalTime + " NEW";
+      } else {
+        bestText = formatTime(oldBest);
+      }
+    } else if (oldBest) {
+      bestText = formatTime(oldBest);
+    }
+
+    endTitle.textContent = won ? "Victory" : "Consumed";
+    endSubtitle.textContent = won
+      ? `${playerName} owns the map. The blobs whisper your name.`
+      : "Fluke denied";
+    endShop.classList.toggle("hidden", won);
+    endShop.classList.remove("shop-open");
+    endScreen.classList.remove("end-shop-open");
+
+    statsBox.innerHTML = "";
+    const summaryStats = [
+      ["Run Time", finalTime],
+      ["Final Mass", mass.toLocaleString()],
+      ["Game #", gamesStarted.toLocaleString()]
+    ];
+    const detailStats = [
+      ["Best Completion", bestText],
+      ["Domination", dom + "%"],
+      ["Enemies Eaten", stats.enemies],
+      ["Pellets Eaten", stats.pellets],
+      ["Split Shots", stats.splits],
+      ["Biggest Eat", stats.biggestEat || "—"]
+    ];
+
+    const summary = document.createElement("div");
+    summary.className = "result-summary";
+    for (const [label, value] of summaryStats) {
+      const card = document.createElement("div");
+      card.className = "control result-card";
+      card.innerHTML = `<div class="key">${label}</div><div class="result-value">${value}</div>`;
+      summary.appendChild(card);
+    }
+    statsBox.appendChild(summary);
+
+    const shardLine = document.createElement("div");
+    shardLine.className = "shard-earned";
+    shardLine.innerHTML = `+<span>${earnedShards.toLocaleString()}</span> shards earned`;
+    statsBox.appendChild(shardLine);
+
+    const list = document.createElement("div");
+    list.className = "result-list";
+    for (const [label, value] of detailStats) {
+      const row = document.createElement("div");
+      row.className = "result-row";
+      row.innerHTML = `<span>${label}</span><span>${value}</span>`;
+      list.appendChild(row);
+    }
+    statsBox.appendChild(list);
+  }
+
+  function worldToScreen(x, y) {
+    return {
+      x: (x - camera.x) * camera.zoom + W / 2,
+      y: (y - camera.y) * camera.zoom + H / 2
+    };
+  }
+
+  function drawGrid() {
+    const grid = 120;
+    const left = camera.x - W / 2 / camera.zoom;
+    const right = camera.x + W / 2 / camera.zoom;
+    const top = camera.y - H / 2 / camera.zoom;
+    const bottom = camera.y + H / 2 / camera.zoom;
+
+    ctx.save();
+    ctx.lineWidth = 1 / camera.zoom;
+    ctx.strokeStyle = "rgba(255,255,255,0.045)";
+    ctx.beginPath();
+
+    for (let x = Math.floor(left / grid) * grid; x < right; x += grid) {
+      ctx.moveTo(x, top);
+      ctx.lineTo(x, bottom);
+    }
+    for (let y = Math.floor(top / grid) * grid; y < bottom; y += grid) {
+      ctx.moveTo(left, y);
+      ctx.lineTo(right, y);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255,77,125,0.16)";
+    ctx.lineWidth = 8 / camera.zoom;
+    ctx.strokeRect(0, 0, WORLD, WORLD);
+    ctx.restore();
+  }
+
+  function drawCell(cell, a, b, isPlayer = false) {
+    const r = cell.r;
+    const grad = ctx.createRadialGradient(cell.x - r * 0.35, cell.y - r * 0.38, r * 0.08, cell.x, cell.y, r);
+    grad.addColorStop(0, "rgba(255,255,255,0.95)");
+    grad.addColorStop(0.10, a);
+    grad.addColorStop(1, b);
+
+    ctx.save();
+    ctx.shadowBlur = isPlayer ? 28 : 18;
+    ctx.shadowColor = a;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+
+    const wobble = isPlayer ? performance.now() * 0.002 : cell.wobble;
+    const points = 34;
+    for (let i = 0; i <= points; i++) {
+      const ang = i / points * Math.PI * 2;
+      const bump = 1 + Math.sin(ang * 5 + wobble) * 0.018 + Math.cos(ang * 3 - wobble * 1.7) * 0.012;
+      const x = cell.x + Math.cos(ang) * r * bump;
+      const y = cell.y + Math.sin(ang) * r * bump;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = clamp(r * 0.12, 0.35, 2.6);
+    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.stroke();
+
+    if (!isPlayer && cell.kind === "hunter") {
+      ctx.setLineDash([Math.max(6, r * 0.12), Math.max(5, r * 0.10)]);
+      ctx.lineWidth = Math.max(2, r * 0.028);
+      ctx.strokeStyle = "rgba(255,77,125,0.48)";
+      ctx.beginPath();
+      ctx.arc(cell.x, cell.y, r + Math.max(5, r * 0.08), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Cute oni horns on the player blob.
+    if (isPlayer && r > 18) {
+      const hornSize = clamp(r * 0.23, 8, 32);
+      ctx.fillStyle = "rgba(255,238,245,0.92)";
+      ctx.strokeStyle = "rgba(255,77,125,0.55)";
+      ctx.lineWidth = Math.max(1.5, r * 0.018);
+      drawHorn(cell.x - r * 0.26, cell.y - r * 0.72, -0.32, hornSize);
+      drawHorn(cell.x + r * 0.26, cell.y - r * 0.72, 0.32, hornSize);
+    }
+
+    ctx.restore();
+  }
+
+  function drawHorn(x, y, tilt, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tilt);
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.quadraticCurveTo(size * 0.45, -size * 0.2, size * 0.1, size * 0.52);
+    ctx.quadraticCurveTo(-size * 0.45, -size * 0.12, 0, -size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawFood() {
+    const bounds = visibleWorldBounds(40 / camera.zoom);
+    for (const f of foods) {
+      if (!isVisibleCircle(f, bounds)) continue;
+      const s = f.r * (1 + Math.sin(f.pulse) * 0.12);
+      ctx.save();
+      ctx.globalAlpha = 0.92;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = f.color;
+      ctx.fillStyle = f.color;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawParticles() {
+    const bounds = visibleWorldBounds(80 / camera.zoom);
+    for (const p of particles) {
+      if (p.x + p.size < bounds.left || p.x - p.size > bounds.right || p.y + p.size < bounds.top || p.y - p.size > bounds.bottom) continue;
+      const alpha = clamp(p.life / p.maxLife, 0, 1);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (0.5 + alpha), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawNames() {
+    const bounds = visibleWorldBounds(100 / camera.zoom);
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (const e of enemies) {
+      if (e.r < 18 || !isVisibleCircle(e, bounds)) continue;
+      ctx.font = `${clamp(e.r * 0.26, 10, 18)}px system-ui, sans-serif`;
+      ctx.fillStyle = "rgba(255,255,255,0.68)";
+      ctx.fillText(e.name, e.x, e.y);
+    }
+
+    for (const p of playerCells) {
+      if (p.r < 20 || !isVisibleCircle(p, bounds)) continue;
+      ctx.font = `${clamp(p.r * 0.28, 12, 28)}px system-ui, sans-serif`;
+      ctx.fillStyle = "rgba(255,255,255,0.78)";
+      ctx.fillText(playerName, p.x, p.y);
+      drawPlayerBoostBar(p);
+    }
+    ctx.restore();
+  }
+
+  function drawPlayerBoostBar(cell) {
+    const w = clamp(cell.r * 0.72, 42, 84) / camera.zoom;
+    const h = 4 / camera.zoom;
+    const y = cell.y + clamp(cell.r * 0.24, 16, 34) / camera.zoom;
+    const x = cell.x - w / 2;
+    const fillW = w * boostCharge;
+    const radius = h * 0.5;
+
+    ctx.save();
+    ctx.globalAlpha = 0.74;
+    ctx.fillStyle = "rgba(4,8,18,0.52)";
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, radius);
+    ctx.fill();
+
+    if (fillW > 0.5 / camera.zoom) {
+      ctx.globalAlpha = boostLocked ? 0.42 : 0.72;
+      ctx.fillStyle = boostLocked ? "rgba(210,218,245,0.62)" : "rgba(82,255,202,0.76)";
+      ctx.beginPath();
+      ctx.roundRect(x, y, fillW, h, radius);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    if (state === "menu") {
+      drawMenuBackground();
+      requestAnimationFrame(loop);
+      return;
+    }
+
+    if (settings.disableShake) shake = 0;
+    const sx = shake ? rand(-shake, shake) : 0;
+    const sy = shake ? rand(-shake, shake) : 0;
+    shake *= 0.88;
+    if (shake < 0.05) shake = 0;
+
+    ctx.save();
+    ctx.translate(W / 2 + sx, H / 2 + sy);
+    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(-camera.x, -camera.y);
+
+    drawBackdrop();
+    drawGrid();
+    drawFood();
+
+    const bounds = visibleWorldBounds(120 / camera.zoom);
+    const allCells = [];
+    for (const e of enemies) {
+      if (isVisibleCircle(e, bounds)) allCells.push({ cell: e, z: e.r, kind: "enemy" });
+    }
+    for (const p of playerCells) {
+      if (isVisibleCircle(p, bounds)) allCells.push({ cell: p, z: p.r, kind: "player" });
+    }
+    allCells.sort((a, b) => a.z - b.z);
+
+    for (const item of allCells) {
+      if (item.kind === "player") drawCell(item.cell, PLAYER_COLOR_A, PLAYER_COLOR_B, true);
+      else drawCell(item.cell, item.cell.color[0], item.cell.color[1], false);
+    }
+
+    drawParticles();
+    drawNames();
+    ctx.restore();
+
+    drawVignette();
+
+    if (state === "paused") {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.font = "900 48px system-ui, sans-serif";
+      ctx.fillText("Paused", W / 2, H / 2 - 8);
+      ctx.fillStyle = "rgba(255,255,255,0.66)";
+      ctx.font = "16px system-ui, sans-serif";
+      ctx.fillText("Press Escape to resume", W / 2, H / 2 + 28);
+      ctx.restore();
+    }
+
+    drawMinimap();
+    requestAnimationFrame(loop);
+  }
+
+  function drawBackdrop() {
+    const grad = ctx.createRadialGradient(camera.x, camera.y, 100, camera.x, camera.y, WORLD * 0.65);
+    grad.addColorStop(0, "#111735");
+    grad.addColorStop(1, "#050711");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, WORLD, WORLD);
+
+    ctx.save();
+    const bounds = visibleWorldBounds(1000);
+    for (const aura of auras) {
+      const phase = auraPhase(aura);
+      if (phase.alpha <= 0) continue;
+      const r = aura.radius * phase.scale;
+      if (!isVisibleCircle({ x: aura.x, y: aura.y, r }, bounds)) continue;
+      ctx.globalAlpha = phase.alpha;
+      ctx.fillStyle = aura.fill;
+      ctx.beginPath();
+      ctx.arc(aura.x, aura.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawMenuBackground() {
+    const t = performance.now() * 0.001;
+    ctx.save();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(5,7,17,1)";
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < 28; i++) {
+      const x = (Math.sin(t * 0.27 + i * 2.4) * 0.5 + 0.5) * W;
+      const y = (Math.cos(t * 0.21 + i * 1.7) * 0.5 + 0.5) * H;
+      const r = 8 + (i % 8) * 5;
+      ctx.globalAlpha = 0.09 + (i % 5) * 0.015;
+      ctx.fillStyle = i % 3 === 0 ? "#ff4d7d" : i % 3 === 1 ? "#7a5cff" : "#52ffca";
+      ctx.shadowBlur = 24;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawVignette() {
+    const grad = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.2, W / 2, H / 2, Math.max(W, H) * 0.68);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.45)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawMinimap() {
+    if (hud.classList.contains("hidden")) return;
+    const mw = mini.width;
+    const mh = mini.height;
+    const avgPlayerMass = totalPlayerMass() / Math.max(1, playerCells.length);
+    mctx.clearRect(0, 0, mw, mh);
+    mctx.fillStyle = "rgba(2,4,12,0.62)";
+    mctx.fillRect(0, 0, mw, mh);
+
+    const scale = mw / WORLD;
+    mctx.strokeStyle = "rgba(255,255,255,0.14)";
+    mctx.lineWidth = 3;
+    mctx.strokeRect(2, 2, mw - 4, mh - 4);
+
+    for (const aura of auras) {
+      const phase = auraPhase(aura);
+      if (phase.alpha <= 0) continue;
+      mctx.globalAlpha = clamp(phase.alpha * 2.6, 0.18, 0.62);
+      mctx.strokeStyle = aura.map;
+      mctx.lineWidth = 2;
+      mctx.beginPath();
+      mctx.arc(aura.x * scale, aura.y * scale, clamp(aura.radius * phase.scale * scale, 5, 34), 0, Math.PI * 2);
+      mctx.stroke();
+    }
+    mctx.globalAlpha = 1;
+
+    for (const e of enemies) {
+      mctx.fillStyle = e.kind === "hunter" ? "rgba(255,77,125,0.95)" : e.mass > avgPlayerMass ? "rgba(255,184,77,0.82)" : "rgba(122,92,255,0.70)";
+      mctx.beginPath();
+      mctx.arc(e.x * scale, e.y * scale, clamp(e.r * scale, 2, 7), 0, Math.PI * 2);
+      mctx.fill();
+    }
+
+    for (const p of playerCells) {
+      mctx.fillStyle = "rgba(255,184,77,0.95)";
+      mctx.beginPath();
+      mctx.arc(p.x * scale, p.y * scale, clamp(p.r * scale, 3, 10), 0, Math.PI * 2);
+      mctx.fill();
+    }
+
+    const viewW = W / camera.zoom * scale;
+    const viewH = H / camera.zoom * scale;
+    mctx.strokeStyle = "rgba(255,255,255,0.42)";
+    mctx.lineWidth = 2;
+    mctx.strokeRect(camera.x * scale - viewW / 2, camera.y * scale - viewH / 2, viewW, viewH);
+  }
+
+  function loop(now = performance.now()) {
+    const rawDt = (now - lastTime) / 1000;
+    lastTime = now;
+    const dt = Math.min(0.033, rawDt || 0.016);
+    updateGameTimerUi();
+
+    if (state === "playing") update(dt);
+    else if (state === "paused") updateCamera(dt * 0.3);
+
+    draw();
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
