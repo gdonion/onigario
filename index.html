@@ -624,7 +624,7 @@
   }
 
   .menu-shell.shop-open .shop-drawer {
-    max-height: 380px;
+    max-height: 440px;
     margin-top: 14px;
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -665,7 +665,7 @@
   }
 
   .end-shop.shop-open .shop-drawer {
-    max-height: 300px;
+    max-height: 350px;
     margin-top: 8px;
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -729,6 +729,43 @@
     color: white;
     font-size: 16px;
     font-weight: 900;
+  }
+
+  .shop-option {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.045);
+    color: white;
+    font-size: 12px;
+    font-weight: 950;
+    text-align: left;
+  }
+
+  .shop-option.unlocked {
+    display: flex;
+  }
+
+  .shop-option input {
+    width: 18px;
+    height: 18px;
+    accent-color: #52ffca;
+    flex: 0 0 auto;
+  }
+
+  .shop-option span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .shop-option small {
+    color: rgba(220,228,255,0.58);
+    font-size: 11px;
+    font-weight: 800;
   }
 
   .game-timer {
@@ -966,10 +1003,10 @@
   }
   .setup-row {
     display: grid;
-    grid-template-columns: 1.25fr 0.75fr;
+    grid-template-columns: 1.2fr 0.8fr 0.8fr;
     gap: 12px;
     margin: 38px auto 8px;
-    max-width: 610px;
+    max-width: 760px;
   }
 
   .wallet {
@@ -1121,6 +1158,57 @@
     background: rgba(255,255,255,0.045);
   }
 
+  .setup-option-control {
+    min-width: 0;
+  }
+
+  .setup-option-button {
+    width: 100%;
+    min-height: 47px;
+    gap: 7px;
+    padding: 9px 12px;
+    flex-wrap: wrap;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  .setup-option-button:focus-visible {
+    outline: 2px solid rgba(82,255,202,0.76);
+    outline-offset: 3px;
+  }
+
+  .setup-option-input {
+    width: 72px;
+    min-width: 0;
+    border: 1px solid rgba(255,255,255,0.16);
+    outline: none;
+    color: white;
+    font: 950 13px/1 system-ui, sans-serif;
+    padding: 6px 8px;
+    border-radius: 999px;
+    text-align: center;
+    background: rgba(0,0,0,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.09);
+  }
+
+  .setup-option-reset {
+    width: auto;
+    min-width: 44px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    padding: 0 8px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .setup-option-reset:hover {
+    transform: none;
+  }
+
   @media (max-width: 720px) {
     .setup-row {
       grid-template-columns: 1fr;
@@ -1184,7 +1272,12 @@
 
           <div class="setup-row">
             <input id="nameInput" class="name-input" maxlength="16" value="Oni" placeholder="Name your blob..." />
-            <button class="tip-button" id="tipsBtn" type="button">Tips: On</button>
+            <div class="setup-option-control">
+              <div class="tip-button setup-option-button" id="mapSizeBtn" role="button" tabindex="0">Map: Default</div>
+            </div>
+            <div class="setup-option-control">
+              <div class="tip-button setup-option-button" id="enemyCountBtn" role="button" tabindex="0">Enemy Count: Default</div>
+            </div>
           </div>
 
           <button id="startBtn">Play</button>
@@ -1206,6 +1299,13 @@
             <span>
               <span class="settings-label">Disable screen shake</span>
               <p class="settings-help">Turns off hit and impact camera shake.</p>
+            </span>
+          </label>
+          <label class="settings-row">
+            <input id="tipsInput" type="checkbox" />
+            <span>
+              <span class="settings-label">Tips</span>
+              <p class="settings-help">Shows occasional run hints and first-time nudges.</p>
             </span>
           </label>
           <div class="settings-row">
@@ -1233,6 +1333,10 @@
             <div class="shop-title">Shard Shop</div>
             <div class="wallet"><span class="label">Shards</span><span id="shardsText">0</span></div>
           </div>
+          <label class="shop-option" id="sandboxShopRow">
+            <input id="sandboxShopInput" type="checkbox" />
+            <span>SANDBOX SHOP<small>Flat 1000 shard upgrades with no level cap.</small></span>
+          </label>
           <div class="upgrade-grid" id="upgradeGrid"></div>
         </div>
       </div>
@@ -1256,6 +1360,10 @@
               <div class="shop-title">Shard Shop</div>
               <div class="wallet"><span class="label">Shards</span><span id="endShardsText">0</span></div>
             </div>
+            <label class="shop-option" id="endSandboxShopRow">
+              <input id="endSandboxShopInput" type="checkbox" />
+              <span>SANDBOX SHOP<small>Flat 1000 shard upgrades with no level cap.</small></span>
+            </label>
             <div class="upgrade-grid" id="endUpgradeGrid"></div>
           </div>
         </div>
@@ -1266,7 +1374,7 @@
   <div class="overlay hidden" id="congratsScreen">
     <div class="screen">
       <h1>Congrats</h1>
-      <p class="subtitle" id="congratsSubtitle">All upgrades maxed. Onigario is complete.</p>
+      <p class="subtitle" id="congratsSubtitle">All upgrades maxed. Sandbox shop unlocked.</p>
       <div class="controls" id="congratsStats"></div>
       <button id="congratsMenuBtn">Return to Menu</button>
     </div>
@@ -1302,31 +1410,48 @@
   const endSubtitle = document.getElementById("endSubtitle");
   const toast = document.getElementById("toast");
   const nameInput = document.getElementById("nameInput");
-  const tipsBtn = document.getElementById("tipsBtn");
+  const mapSizeBtn = document.getElementById("mapSizeBtn");
+  const enemyCountBtn = document.getElementById("enemyCountBtn");
   const playerPreview = document.getElementById("playerPreview");
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsPanel = document.getElementById("settingsPanel");
   const settingsCloseBtn = document.getElementById("settingsCloseBtn");
   const disableShakeInput = document.getElementById("disableShakeInput");
+  const tipsInput = document.getElementById("tipsInput");
   const enemyNamesInput = document.getElementById("enemyNamesInput");
   const shardsText = document.getElementById("shardsText");
   const upgradeGrid = document.getElementById("upgradeGrid");
   const shopToggle = document.getElementById("shopToggle");
+  const sandboxShopRow = document.getElementById("sandboxShopRow");
+  const sandboxShopInput = document.getElementById("sandboxShopInput");
   const resetProgressBtn = document.getElementById("resetProgressBtn");
   const endShop = document.getElementById("endShop");
   const endShopToggle = document.getElementById("endShopToggle");
   const endShardsText = document.getElementById("endShardsText");
+  const endSandboxShopRow = document.getElementById("endSandboxShopRow");
+  const endSandboxShopInput = document.getElementById("endSandboxShopInput");
   const endUpgradeGrid = document.getElementById("endUpgradeGrid");
 
-  const WORLD = 4400;
-  const FOOD_COUNT = 1050;
-  const ENEMY_COUNT = 38;
+  const BASE_WORLD = 4400;
+  const BASE_FOOD_COUNT = 1050;
+  const BASE_ENEMY_COUNT = 38;
   const SPATIAL_CELL = 320;
   const FOOD_MAX_R = 7;
   const AI_SENSE_RADIUS = 1520;
   const AI_PREY_RADIUS = 1280;
   const MAX_PARTICLES = 360;
-  const AURA_COUNT = 4;
+  const BASE_AURA_COUNT = 4;
+  const SANDBOX_UPGRADE_COST = 1000;
+  const MAP_SIZE_PRESETS = [
+    { id: "small", label: "Small", scale: 0.5 },
+    { id: "default", label: "Default", scale: 1 },
+    { id: "xl", label: "XL", scale: 2 }
+  ];
+  const ENEMY_COUNT_PRESETS = [
+    { id: "low", label: "Low", scale: 0.5 },
+    { id: "default", label: "Default", scale: 1 },
+    { id: "high", label: "High", scale: 1.6 }
+  ];
   const PLAYER_CRUISE_BASE = 0.16;
   const PLAYER_CRUISE_STEP = 0.22;
   const PLAYER_BOOST_MULT_BASE = 1.14;
@@ -1358,12 +1483,18 @@
   };
   const DEFAULT_SETTINGS = {
     disableShake: false,
-    enemyNames: DEFAULT_ENEMY_NAMES.join(", ")
+    tipsEnabled: true,
+    enemyNames: DEFAULT_ENEMY_NAMES.join(", "),
+    mapSizePreset: "default",
+    sandboxMapSize: 1,
+    enemyCountPreset: "default",
+    sandboxEnemyCount: 1
   };
 
   let W = 0;
   let H = 0;
   let dpr = 1;
+  let world = BASE_WORLD;
   let state = "menu";
   let lastTime = performance.now();
   let startTime = 0;
@@ -1379,6 +1510,7 @@
   let boostLocked = false;
   let shards = 0;
   let upgrades = { ...DEFAULT_UPGRADES };
+  let sandboxShopEnabled = false;
   let settings = { ...DEFAULT_SETTINGS };
   let gameStartedAt = 0;
   let gameCompletedAt = 0;
@@ -1391,8 +1523,8 @@
   let foodGrid = new Map();
   let enemyGrid = new Map();
   let frameId = 0;
-  let camera = { x: WORLD / 2, y: WORLD / 2, zoom: 1 };
-  let mouse = { x: 0, y: 0, worldX: WORLD / 2, worldY: WORLD / 2, down: false };
+  let camera = { x: world / 2, y: world / 2, zoom: 1 };
+  let mouse = { x: 0, y: 0, worldX: world / 2, worldY: world / 2, down: false };
   let stats = {
     pellets: 0,
     enemies: 0,
@@ -1429,6 +1561,20 @@
 
   function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
+  }
+
+  function worldInset(margin) {
+    return Math.min(Math.max(0, margin), Math.max(0, world / 2 - 1));
+  }
+
+  function randomWorldCoord(margin = 0) {
+    const inset = worldInset(margin);
+    return rand(inset, world - inset);
+  }
+
+  function clampWorldCoord(value, margin = 0) {
+    const inset = worldInset(margin);
+    return clamp(value, inset, world - inset);
   }
 
   function distanceSq(a, b) {
@@ -1514,8 +1660,8 @@
     ];
     const color = colors[(Math.random() * colors.length) | 0];
     return {
-      x: rand(420, WORLD - 420),
-      y: rand(420, WORLD - 420),
+      x: randomWorldCoord(420),
+      y: randomWorldCoord(420),
       radius: rand(520, 940),
       age: -delay,
       grow: rand(5.5, 11),
@@ -1587,12 +1733,26 @@
     return 1320 / (Math.sqrt(cell.mass) * 0.11 + 2.7);
   }
 
-  function upgradeLevel(id) {
+  function sandboxUnlocked() {
+    return UPGRADE_DEFS.every(def => actualUpgradeLevel(def.id) >= def.max);
+  }
+
+  function sandboxActive() {
+    return sandboxShopEnabled && sandboxUnlocked();
+  }
+
+  function actualUpgradeLevel(id) {
     return upgrades[id] || 1;
   }
 
+  function upgradeLevel(id) {
+    const def = UPGRADE_DEFS.find(item => item.id === id);
+    const level = actualUpgradeLevel(id);
+    return sandboxActive() || !def ? level : Math.min(level, def.max);
+  }
+
   function allUpgradesMaxed() {
-    return UPGRADE_DEFS.every(def => upgradeLevel(def.id) >= def.max);
+    return sandboxUnlocked();
   }
 
   function currentGameTimeMs() {
@@ -1628,8 +1788,11 @@
 
   function pelletMultiplier() {
     const level = upgradeLevel("pelletMultiplier");
-    const progress = (level - 1) / 15;
-    return 1 + (PELLET_MULTIPLIER_MAX - 1) * Math.pow(progress, PELLET_MULTIPLIER_CURVE);
+    const cappedLevel = Math.min(level, 16);
+    const progress = (cappedLevel - 1) / 15;
+    const base = 1 + (PELLET_MULTIPLIER_MAX - 1) * Math.pow(progress, PELLET_MULTIPLIER_CURVE);
+    if (level <= 16) return base;
+    return base + (level - 16) * ((PELLET_MULTIPLIER_MAX - 1) / 15);
   }
 
   function playerBoostMultiplier(baseSpeed) {
@@ -1649,13 +1812,14 @@
   }
 
   function upgradeCost(def) {
-    const level = upgradeLevel(def.id);
+    const level = actualUpgradeLevel(def.id);
+    if (sandboxActive()) return SANDBOX_UPGRADE_COST;
     if (level >= def.max) return Infinity;
     return Math.floor(def.cost * Math.pow(level, 1.55));
   }
 
   function hasAffordableUpgrade() {
-    return UPGRADE_DEFS.some(def => upgradeLevel(def.id) < def.max && shards >= upgradeCost(def));
+    return UPGRADE_DEFS.some(def => (sandboxActive() || actualUpgradeLevel(def.id) < def.max) && shards >= upgradeCost(def));
   }
 
   function parsedEnemyNames() {
@@ -1677,14 +1841,26 @@
   function loadSettings() {
     try {
       const stored = JSON.parse(localStorage.getItem("onigarioSettings") || "{}");
+      const storedMapPreset = stored.mapSizePreset === "normal" ? "default" : stored.mapSizePreset;
+      const preset = MAP_SIZE_PRESETS.some(item => item.id === storedMapPreset) || storedMapPreset === "custom" ? storedMapPreset : DEFAULT_SETTINGS.mapSizePreset;
+      const sandboxMapSize = Number.isFinite(Number(stored.sandboxMapSize)) ? Number(stored.sandboxMapSize) : DEFAULT_SETTINGS.sandboxMapSize;
+      const storedEnemyPreset = stored.enemyCountPreset === "normal" ? "default" : stored.enemyCountPreset;
+      const enemyCountPreset = ENEMY_COUNT_PRESETS.some(item => item.id === storedEnemyPreset) || storedEnemyPreset === "custom" ? storedEnemyPreset : DEFAULT_SETTINGS.enemyCountPreset;
+      const sandboxEnemyCount = Number.isFinite(Number(stored.sandboxEnemyCount)) ? Number(stored.sandboxEnemyCount) : DEFAULT_SETTINGS.sandboxEnemyCount;
       settings = {
         ...DEFAULT_SETTINGS,
         disableShake: Boolean(stored.disableShake),
-        enemyNames: typeof stored.enemyNames === "string" ? stored.enemyNames : DEFAULT_SETTINGS.enemyNames
+        tipsEnabled: stored.tipsEnabled !== false,
+        enemyNames: typeof stored.enemyNames === "string" ? stored.enemyNames : DEFAULT_SETTINGS.enemyNames,
+        mapSizePreset: preset,
+        sandboxMapSize,
+        enemyCountPreset,
+        sandboxEnemyCount
       };
     } catch {
       settings = { ...DEFAULT_SETTINGS };
     }
+    tipsEnabled = settings.tipsEnabled;
   }
 
   function saveSettings() {
@@ -1693,7 +1869,63 @@
 
   function syncSettingsUi() {
     disableShakeInput.checked = settings.disableShake;
+    tipsInput.checked = settings.tipsEnabled;
     enemyNamesInput.value = settings.enemyNames;
+  }
+
+  function selectedMapPreset() {
+    return MAP_SIZE_PRESETS.find(item => item.id === settings.mapSizePreset) || MAP_SIZE_PRESETS[1];
+  }
+
+  function selectedEnemyCountPreset() {
+    return ENEMY_COUNT_PRESETS.find(item => item.id === settings.enemyCountPreset) || ENEMY_COUNT_PRESETS[1];
+  }
+
+  function setupCustomUnlocked() {
+    return sandboxUnlocked();
+  }
+
+  function currentMapScale() {
+    if (settings.mapSizePreset !== "custom" || !setupCustomUnlocked()) return selectedMapPreset().scale;
+    const typed = Number(settings.sandboxMapSize);
+    return Number.isFinite(typed) ? Math.max(0.01, typed) : DEFAULT_SETTINGS.sandboxMapSize;
+  }
+
+  function currentEnemyCountScale() {
+    if (settings.enemyCountPreset !== "custom" || !setupCustomUnlocked()) return selectedEnemyCountPreset().scale;
+    const typed = Number(settings.sandboxEnemyCount);
+    return Number.isFinite(typed) ? Math.max(0, typed) : DEFAULT_SETTINGS.sandboxEnemyCount;
+  }
+
+  function scaledEntityCount(base, scale, min, max) {
+    return clamp(Math.round(base * scale), min, max);
+  }
+
+  function applyMapSizeForRun() {
+    world = Math.max(64, BASE_WORLD * currentMapScale());
+  }
+
+  function updateMapSizeUi() {
+    const custom = setupCustomUnlocked() && settings.mapSizePreset === "custom";
+    if (custom) {
+      mapSizeBtn.innerHTML = `Map: Custom <input id="mapSizeInput" class="setup-option-input" type="number" step="0.1" value="${settings.sandboxMapSize}" aria-label="Custom map size" /><button class="setup-option-reset" id="mapSizeResetBtn" type="button" aria-label="Reset map size">Reset</button>`;
+    } else {
+      mapSizeBtn.textContent = "Map: " + selectedMapPreset().label;
+    }
+  }
+
+  function updateEnemyCountUi() {
+    const custom = setupCustomUnlocked() && settings.enemyCountPreset === "custom";
+    if (custom) {
+      enemyCountBtn.innerHTML = `Enemy Count: Custom <input id="enemyCountInput" class="setup-option-input" type="number" step="0.1" value="${settings.sandboxEnemyCount}" aria-label="Custom enemy count" /><button class="setup-option-reset" id="enemyCountResetBtn" type="button" aria-label="Reset enemy count">Reset</button>`;
+    } else {
+      enemyCountBtn.textContent = "Enemy Count: " + selectedEnemyCountPreset().label;
+    }
+  }
+
+  function updateSetupOptionUi() {
+    updateMapSizeUi();
+    updateEnemyCountUi();
   }
 
   function openSettingsView() {
@@ -1714,6 +1946,7 @@
 
   function loadMeta() {
     shards = Math.max(0, Number(localStorage.getItem("onigarioShards") || 0));
+    sandboxShopEnabled = localStorage.getItem("onigarioSandboxShopEnabled") === "true";
     gameStartedAt = Math.max(0, Number(localStorage.getItem("onigarioGameStartedAt") || 0));
     gameCompletedAt = Math.max(0, Number(localStorage.getItem("onigarioGameCompletedAt") || 0));
     gamesStarted = Math.max(0, Number(localStorage.getItem("onigarioGamesStarted") || 0));
@@ -1722,16 +1955,18 @@
       upgrades = { ...DEFAULT_UPGRADES };
       for (const def of UPGRADE_DEFS) {
         const storedLevel = def.id === "pelletMultiplier" ? stored.pelletMultiplier || stored.startSize : stored[def.id];
-        upgrades[def.id] = clamp(Number(storedLevel || 1), 1, def.max);
+        upgrades[def.id] = Math.max(1, Math.floor(Number(storedLevel || 1)));
       }
     } catch {
       upgrades = { ...DEFAULT_UPGRADES };
     }
+    if (!sandboxUnlocked()) sandboxShopEnabled = false;
   }
 
   function saveMeta() {
     localStorage.setItem("onigarioShards", String(Math.floor(shards)));
     localStorage.setItem("onigarioUpgrades", JSON.stringify(upgrades));
+    localStorage.setItem("onigarioSandboxShopEnabled", String(sandboxShopEnabled));
     localStorage.setItem("onigarioGameStartedAt", String(Math.floor(gameStartedAt)));
     localStorage.setItem("onigarioGameCompletedAt", String(Math.floor(gameCompletedAt)));
     localStorage.setItem("onigarioGamesStarted", String(Math.floor(gamesStarted)));
@@ -1741,6 +1976,7 @@
     if (!confirm("Reset all Onigario progress and start over?")) return;
     shards = 0;
     upgrades = { ...DEFAULT_UPGRADES };
+    sandboxShopEnabled = false;
     gameStartedAt = 0;
     gameCompletedAt = 0;
     gamesStarted = 0;
@@ -1763,7 +1999,7 @@
   function createUpgradeCard(def) {
     const level = upgradeLevel(def.id);
     const cost = upgradeCost(def);
-    const maxed = level >= def.max;
+    const maxed = !sandboxActive() && actualUpgradeLevel(def.id) >= def.max;
     const valueText = def.id === "pelletMultiplier" ? ` - ${pelletMultiplier().toFixed(2)}x` : "";
     const card = document.createElement("div");
     card.className = "upgrade-card";
@@ -1771,7 +2007,7 @@
       <div class="upgrade-title">${def.label}</div>
       <div class="upgrade-level">Level ${level}${valueText}${maxed ? " MAX" : ""}</div>
       <button class="upgrade-buy" type="button" data-upgrade="${def.id}" ${maxed || shards < cost ? "disabled" : ""}>
-        ${maxed ? "Maxed" : cost + " shards"}
+        ${maxed ? "Maxed" : cost.toLocaleString() + " shards"}
       </button>
     `;
     return card;
@@ -1779,12 +2015,19 @@
 
   function renderUpgradeShop() {
     const shardCount = Math.floor(shards).toLocaleString();
+    const unlocked = sandboxUnlocked();
+    if (!unlocked) sandboxShopEnabled = false;
     const affordable = hasAffordableUpgrade();
     shardsText.textContent = shardCount;
     endShardsText.textContent = shardCount;
+    sandboxShopRow.classList.toggle("unlocked", unlocked);
+    endSandboxShopRow.classList.toggle("unlocked", unlocked);
+    sandboxShopInput.checked = sandboxActive();
+    endSandboxShopInput.checked = sandboxActive();
     updateGameTimerUi();
     updateMenuVisibility();
     updatePlayerPreview();
+    updateSetupOptionUi();
     shopToggle.classList.toggle("upgrade-ready", affordable);
     endShopToggle.classList.toggle("upgrade-ready", affordable);
 
@@ -1800,7 +2043,7 @@
     const def = UPGRADE_DEFS.find(item => item.id === id);
     if (!def) return;
     const cost = upgradeCost(def);
-    if (upgradeLevel(id) >= def.max || shards < cost) return;
+    if ((!sandboxActive() && actualUpgradeLevel(id) >= def.max) || shards < cost) return;
     shards -= cost;
     upgrades[id]++;
     saveMeta();
@@ -1827,7 +2070,7 @@
     congratsScreen.classList.remove("hidden");
     updateGameTimerUi();
 
-    congratsSubtitle.textContent = `All level 16 upgrades unlocked in ${finalGameTime}. Onigario is complete.`;
+    congratsSubtitle.textContent = `All level 16 upgrades unlocked in ${finalGameTime}. Sandbox shop unlocked.`;
     congratsStats.innerHTML = "";
     const finalStats = [
       ["Game Time", finalGameTime],
@@ -1862,7 +2105,7 @@
 
   function playerCenter() {
     const total = totalPlayerMass();
-    if (total <= 0 || playerCells.length === 0) return { x: WORLD / 2, y: WORLD / 2 };
+    if (total <= 0 || playerCells.length === 0) return { x: world / 2, y: world / 2 };
     let x = 0;
     let y = 0;
     for (const c of playerCells) {
@@ -1891,8 +2134,8 @@
     if (huePick < 0.33) color = "#ffb84d";
     else if (huePick < 0.66) color = "#9b7cff";
     return {
-      x: rand(90, WORLD - 90),
-      y: rand(90, WORLD - 90),
+      x: randomWorldCoord(90),
+      y: randomWorldCoord(90),
       mass: rand(3.2, 8.6),
       r: rand(3.2, 6.8),
       color,
@@ -1912,16 +2155,16 @@
     ];
     return {
       id: i,
-      x: rand(240, WORLD - 240),
-      y: rand(240, WORLD - 240),
+      x: randomWorldCoord(240),
+      y: randomWorldCoord(240),
       vx: rand(-20, 20),
       vy: rand(-20, 20),
       mass,
       r: radiusFromMass(mass),
       color: colors[i % colors.length],
       mood: "wander",
-      targetX: rand(0, WORLD),
-      targetY: rand(0, WORLD),
+      targetX: randomWorldCoord(0),
+      targetY: randomWorldCoord(0),
       think: rand(0.2, 1.4),
       wobble: rand(0, 9),
       name: enemyNames[i % enemyNames.length],
@@ -1943,8 +2186,8 @@
   function findOpenEnemyPosition(r, makeCandidate, attempts = 48) {
     for (let i = 0; i < attempts; i++) {
       const spot = makeCandidate(i);
-      const x = clamp(spot.x, r, WORLD - r);
-      const y = clamp(spot.y, r, WORLD - r);
+      const x = clampWorldCoord(spot.x, r);
+      const y = clampWorldCoord(spot.y, r);
       if (!enemySpawnBlocked(x, y, r)) return { x, y };
     }
     return null;
@@ -1999,7 +2242,7 @@
     const mass = totalPlayerMass();
     const base = 34;
     const scaled = Math.floor(Math.sqrt(mass) / 4.2);
-    return clamp(base + scaled, 38, 72);
+    return clamp(Math.round((base + scaled) * currentEnemyCountScale()), 6, 120);
   }
 
   function updateEnemySpawns(dt) {
@@ -2007,7 +2250,7 @@
     dangerSpawnTimer -= dt;
 
     const targetCount = desiredEnemyCount();
-    while (enemies.length < Math.min(targetCount, 72) && enemySpawnTimer <= 0) {
+    while (enemies.length < Math.min(targetCount, 120) && enemySpawnTimer <= 0) {
       const domination = getDomination();
       const kind = domination > 52 && Math.random() < 0.42 ? "hunter" : Math.random() < 0.35 ? "prey" : "normal";
       spawnEnemyNearPlayer(kind);
@@ -2015,7 +2258,7 @@
     }
 
     // Even if the population is healthy, periodically inject a threat once the player is big.
-    if (dangerSpawnTimer <= 0 && totalPlayerMass() > 360 && enemies.length < 78) {
+    if (dangerSpawnTimer <= 0 && totalPlayerMass() > 360 && enemies.length < Math.max(8, Math.round(78 * currentEnemyCountScale()))) {
       spawnEnemyNearPlayer("hunter");
       dangerSpawnTimer = rand(18, 32);
     }
@@ -2024,20 +2267,24 @@
   function resetGame() {
     startGameTimer();
     if (finishCampaignIfComplete()) return;
+    applyMapSizeForRun();
     gamesStarted++;
     saveMeta();
     updateMenuVisibility();
     playerName = (nameInput.value || "Oni").trim().slice(0, 16) || "Oni";
-    tipsEnabled = !tipsBtn.classList.contains("off");
+    tipsEnabled = settings.tipsEnabled;
     nextTipAt = 120000;
     const startMass = playerStartMass();
-    foods = Array.from({ length: FOOD_COUNT }, randomFood);
+    const foodCount = scaledEntityCount(BASE_FOOD_COUNT, currentMapScale(), 120, 5000);
+    const enemyCount = scaledEntityCount(BASE_ENEMY_COUNT, currentEnemyCountScale(), 4, 120);
+    const auraCount = scaledEntityCount(BASE_AURA_COUNT, currentMapScale(), 1, 18);
+    foods = Array.from({ length: foodCount }, randomFood);
     enemies = [];
-    for (let i = 0; i < ENEMY_COUNT; i++) {
+    for (let i = 0; i < enemyCount; i++) {
       const enemy = makeEnemy(i);
       const spot = findOpenEnemyPosition(enemy.r, () => ({
-        x: rand(240, WORLD - 240),
-        y: rand(240, WORLD - 240)
+        x: randomWorldCoord(240),
+        y: randomWorldCoord(240)
       }), 80);
       if (!spot) continue;
       enemy.x = spot.x;
@@ -2046,11 +2293,11 @@
     }
     foodGrid = buildSpatialGrid(foods);
     enemyGrid = buildSpatialGrid(enemies);
-    auras = Array.from({ length: AURA_COUNT }, (_, i) => randomAura(i * 3.5));
+    auras = Array.from({ length: auraCount }, (_, i) => randomAura(i * 3.5));
 
     playerCells = [{
-      x: WORLD / 2,
-      y: WORLD / 2,
+      x: world / 2,
+      y: world / 2,
       vx: 0,
       vy: 0,
       mass: startMass,
@@ -2063,8 +2310,8 @@
     }];
 
     particles = [];
-    camera = { x: WORLD / 2, y: WORLD / 2, zoom: 1 };
-    mouse = { x: W / 2, y: H / 2, worldX: WORLD / 2, worldY: WORLD / 2, down: false };
+    camera = { x: world / 2, y: world / 2, zoom: 1 };
+    mouse = { x: W / 2, y: H / 2, worldX: world / 2, worldY: world / 2, down: false };
     stats = { pellets: 0, enemies: 0, biggestEat: 0, splits: 0 };
     splitCooldown = 0;
     boostCharge = 1;
@@ -2191,10 +2438,100 @@
     if (settings.disableShake) shake = 0;
     saveSettings();
   });
+  tipsInput.addEventListener("change", () => {
+    settings.tipsEnabled = tipsInput.checked;
+    tipsEnabled = settings.tipsEnabled;
+    saveSettings();
+    if (tipsEnabled) {
+      nextTipAt = elapsed + 120000;
+      showToast(tips[tipIndex++ % tips.length]);
+    } else {
+      showToast("Tips disabled. Pure chaos mode.");
+    }
+  });
   enemyNamesInput.addEventListener("input", () => {
     settings.enemyNames = enemyNamesInput.value;
     saveSettings();
     applyEnemyNamesToCurrentRun();
+  });
+  function availableSetupPresets(basePresets) {
+    return setupCustomUnlocked() ? [...basePresets, { id: "custom", label: "Custom" }] : basePresets;
+  }
+
+  function cycleMapSize() {
+    const options = availableSetupPresets(MAP_SIZE_PRESETS);
+    const currentIndex = Math.max(0, options.findIndex(item => item.id === settings.mapSizePreset));
+    const next = options[(currentIndex + 1) % options.length];
+    settings.mapSizePreset = next.id;
+    saveSettings();
+    updateMapSizeUi();
+    showToast("Map size: " + next.label + ".");
+  }
+
+  function cycleEnemyCount() {
+    const options = availableSetupPresets(ENEMY_COUNT_PRESETS);
+    const currentIndex = Math.max(0, options.findIndex(item => item.id === settings.enemyCountPreset));
+    const next = options[(currentIndex + 1) % options.length];
+    settings.enemyCountPreset = next.id;
+    saveSettings();
+    updateEnemyCountUi();
+    showToast("Enemy count: " + next.label + ".");
+  }
+
+  function setupOptionKeydown(e, cycle) {
+    if (e.target.matches("input, button")) return;
+    if (e.code !== "Enter" && e.code !== "Space") return;
+    e.preventDefault();
+    cycle();
+  }
+
+  mapSizeBtn.addEventListener("click", e => {
+    if (e.target.matches("input")) return;
+    if (e.target.closest("#mapSizeResetBtn")) {
+      settings.sandboxMapSize = DEFAULT_SETTINGS.sandboxMapSize;
+      saveSettings();
+      updateMapSizeUi();
+      showToast("Map size reset.");
+      return;
+    }
+    cycleMapSize();
+  });
+  mapSizeBtn.addEventListener("input", e => {
+    if (!e.target.matches("#mapSizeInput")) return;
+    const value = Number(e.target.value);
+    settings.sandboxMapSize = Number.isFinite(value) ? value : DEFAULT_SETTINGS.sandboxMapSize;
+    saveSettings();
+  });
+  mapSizeBtn.addEventListener("keydown", e => setupOptionKeydown(e, cycleMapSize));
+  enemyCountBtn.addEventListener("click", e => {
+    if (e.target.matches("input")) return;
+    if (e.target.closest("#enemyCountResetBtn")) {
+      settings.sandboxEnemyCount = DEFAULT_SETTINGS.sandboxEnemyCount;
+      saveSettings();
+      updateEnemyCountUi();
+      showToast("Enemy count reset.");
+      return;
+    }
+    cycleEnemyCount();
+  });
+  enemyCountBtn.addEventListener("input", e => {
+    if (!e.target.matches("#enemyCountInput")) return;
+    const value = Number(e.target.value);
+    settings.sandboxEnemyCount = Number.isFinite(value) ? value : DEFAULT_SETTINGS.sandboxEnemyCount;
+    saveSettings();
+  });
+  enemyCountBtn.addEventListener("keydown", e => setupOptionKeydown(e, cycleEnemyCount));
+  function setSandboxShopEnabled(enabled) {
+    sandboxShopEnabled = Boolean(enabled && sandboxUnlocked());
+    saveMeta();
+    renderUpgradeShop();
+    showToast(sandboxShopEnabled ? "Sandbox shop enabled." : "Sandbox shop disabled.");
+  }
+  sandboxShopInput.addEventListener("change", () => {
+    setSandboxShopEnabled(sandboxShopInput.checked);
+  });
+  endSandboxShopInput.addEventListener("change", () => {
+    setSandboxShopEnabled(endSandboxShopInput.checked);
   });
   shopToggle.addEventListener("click", () => {
     menuShell.classList.toggle("shop-open");
@@ -2234,23 +2571,6 @@
     buyUpgrade(button.dataset.upgrade);
   });
 
-  function syncTipsButton() {
-    tipsBtn.textContent = tipsEnabled ? "Tips: On" : "Tips: Off";
-    tipsBtn.classList.toggle("off", !tipsEnabled);
-  }
-
-  tipsBtn.addEventListener("click", () => {
-    tipsEnabled = !tipsEnabled;
-    syncTipsButton();
-    if (tipsEnabled) {
-      nextTipAt = elapsed + 120000;
-      showToast(tips[tipIndex++ % tips.length]);
-    } else {
-      showToast("Tips disabled. Pure chaos mode.");
-    }
-  });
-
-  syncTipsButton();
   loadSettings();
   syncSettingsUi();
   loadMeta();
@@ -2349,8 +2669,8 @@
       cell.vx *= Math.pow(0.80, dt);
       cell.vy *= Math.pow(0.80, dt);
 
-      cell.x = clamp(cell.x, cell.r, WORLD - cell.r);
-      cell.y = clamp(cell.y, cell.r, WORLD - cell.r);
+      cell.x = clampWorldCoord(cell.x, cell.r);
+      cell.y = clampWorldCoord(cell.y, cell.r);
     }
 
     mergePlayerCells();
@@ -2435,8 +2755,8 @@
             enemy.targetX = nearestFood.x;
             enemy.targetY = nearestFood.y;
           } else {
-            enemy.targetX = clamp(enemy.x + rand(-600, 600), 80, WORLD - 80);
-            enemy.targetY = clamp(enemy.y + rand(-600, 600), 80, WORLD - 80);
+            enemy.targetX = clampWorldCoord(enemy.x + rand(-600, 600), 80);
+            enemy.targetY = clampWorldCoord(enemy.y + rand(-600, 600), 80);
           }
         }
       }
@@ -2474,8 +2794,8 @@
       enemy.y += enemy.vy * dt;
       enemy.vx *= Math.pow(0.90, dt);
       enemy.vy *= Math.pow(0.90, dt);
-      enemy.x = clamp(enemy.x, enemy.r, WORLD - enemy.r);
-      enemy.y = clamp(enemy.y, enemy.r, WORLD - enemy.r);
+      enemy.x = clampWorldCoord(enemy.x, enemy.r);
+      enemy.y = clampWorldCoord(enemy.y, enemy.r);
     }
   }
 
@@ -2733,7 +3053,7 @@
 
     ctx.strokeStyle = "rgba(255,77,125,0.16)";
     ctx.lineWidth = 8 / camera.zoom;
-    ctx.strokeRect(0, 0, WORLD, WORLD);
+    ctx.strokeRect(0, 0, world, world);
     ctx.restore();
   }
 
@@ -2952,11 +3272,11 @@
   }
 
   function drawBackdrop() {
-    const grad = ctx.createRadialGradient(camera.x, camera.y, 100, camera.x, camera.y, WORLD * 0.65);
+    const grad = ctx.createRadialGradient(camera.x, camera.y, 100, camera.x, camera.y, world * 0.65);
     grad.addColorStop(0, "#111735");
     grad.addColorStop(1, "#050711");
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, WORLD, WORLD);
+    ctx.fillRect(0, 0, world, world);
 
     ctx.save();
     const bounds = visibleWorldBounds(1000);
@@ -3013,7 +3333,7 @@
     mctx.fillStyle = "rgba(2,4,12,0.62)";
     mctx.fillRect(0, 0, mw, mh);
 
-    const scale = mw / WORLD;
+    const scale = mw / world;
     mctx.strokeStyle = "rgba(255,255,255,0.14)";
     mctx.lineWidth = 3;
     mctx.strokeRect(2, 2, mw - 4, mh - 4);
