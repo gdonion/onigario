@@ -457,6 +457,48 @@
     text-align: right;
   }
 
+  .sandbox-result {
+    width: min(520px, 100%);
+    margin: 0 auto 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(82,255,202,0.22);
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 22% 0%, rgba(255,255,255,0.12), transparent 30%),
+      linear-gradient(135deg, rgba(82,255,202,0.14), rgba(122,92,255,0.13)),
+      rgba(255,255,255,0.04);
+    color: #dffef7;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  .sandbox-result strong {
+    display: block;
+    margin-bottom: 2px;
+    color: white;
+    font-size: 16px;
+    font-weight: 950;
+  }
+
+  .pause-screen {
+    width: min(420px, 100%);
+    padding: 34px 28px 30px;
+  }
+
+  .pause-screen h1 {
+    font-size: clamp(44px, 10vw, 72px);
+  }
+
+  .pause-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+  }
+
   #endScreen.end-shop-open .result-summary {
     gap: 12px;
     margin: 20px auto 12px;
@@ -522,7 +564,9 @@
 
   #startBtn {
     min-width: 186px;
+    min-height: 54px;
     margin-top: 8px;
+    border-radius: 22px;
   }
 
   .hidden {
@@ -1003,10 +1047,10 @@
   }
   .setup-row {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr 0.8fr;
+    grid-template-columns: minmax(280px, 1.6fr) minmax(150px, 0.7fr) minmax(170px, 0.7fr);
     gap: 12px;
     margin: 38px auto 8px;
-    max-width: 760px;
+    max-width: 860px;
   }
 
   .wallet {
@@ -1119,12 +1163,13 @@
 
   .name-input {
     width: 100%;
+    min-height: 64px;
     border: 1px solid rgba(255,255,255,0.14);
     outline: none;
     color: white;
     font: 800 15px/1 system-ui, sans-serif;
-    padding: 15px 16px;
-    border-radius: 999px;
+    padding: 16px 18px;
+    border-radius: 22px;
     background:
       linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
       rgba(255,255,255,0.055);
@@ -1142,7 +1187,7 @@
     min-width: 148px;
     padding: 15px 16px;
     border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 999px;
+    border-radius: 22px;
     background:
       linear-gradient(135deg, rgba(255, 122, 89, 0.22), rgba(122, 92, 255, 0.18)),
       rgba(255,255,255,0.055);
@@ -1164,9 +1209,9 @@
 
   .setup-option-button {
     width: 100%;
-    min-height: 47px;
+    min-height: 64px;
     gap: 7px;
-    padding: 9px 12px;
+    padding: 10px 12px;
     flex-wrap: wrap;
     line-height: 1.1;
     white-space: normal;
@@ -1178,31 +1223,33 @@
   }
 
   .setup-option-input {
-    width: 72px;
+    width: 58px;
+    height: 32px;
     min-width: 0;
     border: 1px solid rgba(255,255,255,0.16);
     outline: none;
     color: white;
     font: 950 13px/1 system-ui, sans-serif;
-    padding: 6px 8px;
-    border-radius: 999px;
+    padding: 6px 7px;
+    border-radius: 10px;
     text-align: center;
     background: rgba(0,0,0,0.18);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.09);
   }
 
   .setup-option-reset {
-    width: auto;
-    min-width: 44px;
-    height: 24px;
+    width: 52px;
+    min-width: 52px;
+    height: 32px;
     display: grid;
     place-items: center;
-    padding: 0 8px;
+    padding: 0 6px;
     border: 1px solid rgba(255,255,255,0.14);
     background: rgba(255,255,255,0.08);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
     font-size: 10px;
     line-height: 1;
+    border-radius: 10px;
   }
 
   .setup-option-reset:hover {
@@ -1271,7 +1318,7 @@
           </div>
 
           <div class="setup-row">
-            <input id="nameInput" class="name-input" maxlength="16" value="Oni" placeholder="Name your blob..." />
+            <input id="nameInput" class="name-input" maxlength="24" value="Oni" placeholder="Name your blob..." />
             <div class="setup-option-control">
               <div class="tip-button setup-option-button" id="mapSizeBtn" role="button" tabindex="0">Map: Default</div>
             </div>
@@ -1380,6 +1427,17 @@
     </div>
   </div>
 
+  <div class="overlay hidden" id="pauseMenu">
+    <div class="screen pause-screen">
+      <h1>Paused</h1>
+      <p class="subtitle">Take a breather.</p>
+      <div class="pause-actions">
+        <button id="resumeBtn" type="button">Resume</button>
+        <button class="ghost" id="pauseMenuBtn" type="button">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">Tip</div>
 
 <script>
@@ -1395,6 +1453,7 @@
   const menu = document.getElementById("menu");
   const endScreen = document.getElementById("endScreen");
   const congratsScreen = document.getElementById("congratsScreen");
+  const pauseMenu = document.getElementById("pauseMenu");
   const gameTimer = document.getElementById("gameTimer");
   const gameTimerText = document.getElementById("gameTimerText");
   const menuShell = document.getElementById("menuShell");
@@ -1431,6 +1490,8 @@
   const endSandboxShopRow = document.getElementById("endSandboxShopRow");
   const endSandboxShopInput = document.getElementById("endSandboxShopInput");
   const endUpgradeGrid = document.getElementById("endUpgradeGrid");
+  const resumeBtn = document.getElementById("resumeBtn");
+  const pauseMenuBtn = document.getElementById("pauseMenuBtn");
 
   const BASE_WORLD = 4400;
   const BASE_FOOD_COUNT = 1050;
@@ -1759,6 +1820,10 @@
     return sandboxActive() || !def ? level : Math.min(level, def.max);
   }
 
+  function usingSandboxMode() {
+    return UPGRADE_DEFS.some(def => upgradeLevel(def.id) > def.max);
+  }
+
   function allUpgradesMaxed() {
     return sandboxUnlocked();
   }
@@ -2014,6 +2079,7 @@
     menu.classList.remove("hidden");
     endScreen.classList.add("hidden");
     congratsScreen.classList.add("hidden");
+    pauseMenu.classList.add("hidden");
     menuShell.classList.add("shop-open");
     closeSettingsView();
     playerCells = [];
@@ -2090,11 +2156,13 @@
 
   function showCongratsScreen() {
     const finalGameTime = formatGameTime(currentGameTimeMs());
+    const sandboxMode = usingSandboxMode();
     state = "complete";
     hud.classList.add("hidden");
     menu.classList.add("hidden");
     endScreen.classList.add("hidden");
     congratsScreen.classList.remove("hidden");
+    pauseMenu.classList.add("hidden");
     updateGameTimerUi();
 
     congratsSubtitle.textContent = `All level 16 upgrades unlocked in ${finalGameTime}. Sandbox shop unlocked.`;
@@ -2102,6 +2170,7 @@
     const finalStats = [
       ["Game Time", finalGameTime],
       ["Completion", "100%"],
+      ["Sandbox Mode", sandboxMode ? "ON" : "OFF"],
       ["Shards Left", Math.floor(shards).toLocaleString()],
       ["Best Run", localStorage.getItem("onigarioBest") ? formatTime(Number(localStorage.getItem("onigarioBest"))) : "None"]
     ];
@@ -2330,7 +2399,7 @@
     gamesStarted++;
     saveMeta();
     updateMenuVisibility();
-    playerName = (nameInput.value || "Oni").trim().slice(0, 16) || "Oni";
+    playerName = (nameInput.value || "Oni").trim().slice(0, 24) || "Oni";
     tipsEnabled = settings.tipsEnabled;
     nextTipAt = 120000;
     const startMass = playerStartMass();
@@ -2390,7 +2459,36 @@
     menu.classList.add("hidden");
     endScreen.classList.add("hidden");
     congratsScreen.classList.add("hidden");
+    pauseMenu.classList.add("hidden");
     if (tipsEnabled) showToast("Eat tiny dots first. The oni empire starts smol.");
+  }
+
+  function pauseGame() {
+    if (state !== "playing") return;
+    state = "paused";
+    pauseMenu.classList.remove("hidden");
+    showToast("Paused.");
+  }
+
+  function resumeGame() {
+    if (state !== "paused") return;
+    state = "playing";
+    lastTime = performance.now();
+    pauseMenu.classList.add("hidden");
+    showToast("Back to the feast.");
+  }
+
+  function returnToMainMenu() {
+    state = "menu";
+    mouse.down = false;
+    hud.classList.add("hidden");
+    menu.classList.remove("hidden");
+    endScreen.classList.add("hidden");
+    congratsScreen.classList.add("hidden");
+    pauseMenu.classList.add("hidden");
+    closeSettingsView();
+    menuShell.classList.add("shop-open");
+    renderUpgradeShop();
   }
 
   function showToast(text) {
@@ -2477,18 +2575,17 @@
       if (settingsOpen) {
         closeSettingsView();
       } else if (state === "playing") {
-        state = "paused";
-        showToast("Paused. Press Escape to resume.");
+        pauseGame();
       } else if (state === "paused") {
-        state = "playing";
-        lastTime = performance.now();
-        showToast("Back to the feast.");
+        resumeGame();
       }
     }
   });
 
   document.getElementById("startBtn").addEventListener("click", resetGame);
   document.getElementById("restartBtn").addEventListener("click", resetGame);
+  resumeBtn.addEventListener("click", resumeGame);
+  pauseMenuBtn.addEventListener("click", returnToMainMenu);
   resetProgressBtn.addEventListener("click", resetProgress);
   settingsBtn.addEventListener("click", () => {
     openSettingsView();
@@ -2604,24 +2701,10 @@
     endScreen.classList.toggle("end-shop-open", opened);
   });
   document.getElementById("menuBtn").addEventListener("click", () => {
-    state = "menu";
-    hud.classList.add("hidden");
-    menu.classList.remove("hidden");
-    endScreen.classList.add("hidden");
-    congratsScreen.classList.add("hidden");
-    closeSettingsView();
-    menuShell.classList.add("shop-open");
-    renderUpgradeShop();
+    returnToMainMenu();
   });
   document.getElementById("congratsMenuBtn").addEventListener("click", () => {
-    state = "menu";
-    hud.classList.add("hidden");
-    menu.classList.remove("hidden");
-    endScreen.classList.add("hidden");
-    congratsScreen.classList.add("hidden");
-    closeSettingsView();
-    menuShell.classList.add("shop-open");
-    renderUpgradeShop();
+    returnToMainMenu();
   });
   upgradeGrid.addEventListener("click", e => {
     const button = e.target.closest("[data-upgrade]");
@@ -3015,10 +3098,12 @@
     hud.classList.add("hidden");
     endScreen.classList.remove("hidden");
     congratsScreen.classList.add("hidden");
+    pauseMenu.classList.add("hidden");
 
     const finalTime = formatTime(elapsed);
     const mass = Math.round(totalPlayerMass());
     const dom = Math.floor(getDomination());
+    const sandboxMode = usingSandboxMode();
     const earnedShards = runShardReward(won, mass, dom);
     shards += earnedShards;
     saveMeta();
@@ -3076,6 +3161,11 @@
     shardLine.className = "shard-earned";
     shardLine.innerHTML = `+<span>${earnedShards.toLocaleString()}</span> shards earned`;
     statsBox.appendChild(shardLine);
+
+    const sandboxLine = document.createElement("div");
+    sandboxLine.className = "sandbox-result";
+    sandboxLine.innerHTML = `<strong>Sandbox Mode: ${sandboxMode ? "ON" : "OFF"}</strong>Power above 16 ${sandboxMode ? "enabled" : "not enabled"}.`;
+    statsBox.appendChild(sandboxLine);
 
     const list = document.createElement("div");
     list.className = "result-list";
