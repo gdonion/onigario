@@ -162,11 +162,13 @@
     width: min(780px, calc(100vw - 48px));
     display: grid;
     justify-items: center;
-    gap: 0;
+    gap: 24px;
   }
 
   .menu-shell.settings-view-open .shop-toggle,
-  .menu-shell.settings-view-open .shop-drawer {
+  .menu-shell.settings-view-open .shop-drawer,
+  .menu-shell.customize-view-open .shop-toggle,
+  .menu-shell.customize-view-open .shop-drawer {
     display: none;
   }
 
@@ -275,8 +277,9 @@
     text-shadow: 0 10px 48px rgba(255,77,125,0.32), 0 1px 0 rgba(255,255,255,0.15);
   }
 
-  .menu-screen h1 {
-    font-size: 76px;
+  .menu-title {
+    font-size: clamp(76px, 12vw, 116px);
+    margin: -142px 0 0;
   }
 
   .menu-view {
@@ -289,21 +292,39 @@
     gap: 0.08em;
   }
 
+  .player-stage {
+    width: fit-content;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+
   .player-preview {
-    --blob-size: 72px;
+    --blob-size: 136px;
+    --blob-a: #ff4d7d;
+    --blob-mid: #ff7f68;
+    --blob-b: #ff94b1;
+    --blob-glow: rgba(255,77,125,0.35);
+    --blob-shine: rgba(255,148,177,0.62);
     width: var(--blob-size);
     height: var(--blob-size);
-    margin: 0 auto 18px;
+    margin: 0 auto;
     border-radius: 50%;
     background:
       radial-gradient(circle at 34% 30%, rgba(255,255,255,0.95), transparent 12%),
-      radial-gradient(circle at 58% 58%, rgba(255,184,77,0.78), transparent 24%),
-      linear-gradient(135deg, #ff4d7d 8%, #ff6f63 46%, #ffb84d 100%);
-    box-shadow: 0 18px 54px rgba(255,77,125,0.35), inset 0 1px 0 rgba(255,255,255,0.46);
+      radial-gradient(circle at 58% 58%, var(--blob-shine), transparent 24%),
+      linear-gradient(135deg, var(--blob-a) 8%, var(--blob-mid) 46%, var(--blob-b) 100%);
+    box-shadow: 0 18px 54px var(--blob-glow), inset 0 1px 0 rgba(255,255,255,0.46);
     position: relative;
     opacity: 0.92;
     pointer-events: none;
     transform: translateZ(0);
+  }
+
+  .player-preview::before,
+  .player-preview::after,
+  .preview-accessory::before,
+  .preview-accessory::after {
+    pointer-events: none;
   }
 
   .player-preview::before,
@@ -314,7 +335,7 @@
     width: calc(var(--blob-size) * 0.20);
     height: calc(var(--blob-size) * 0.40);
     border-radius: 15px 15px 4px 4px;
-    background: linear-gradient(#fff0f6, #ff7a9f);
+    background: linear-gradient(rgba(255,255,255,0.94), var(--blob-b));
     transform-origin: bottom;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
   }
@@ -327,6 +348,485 @@
   .player-preview::after {
     right: calc(var(--blob-size) * 0.22);
     transform: rotate(27deg);
+  }
+
+  .player-preview.accessory-none::before,
+  .player-preview.accessory-none::after,
+  .player-preview.accessory-crown::before,
+  .player-preview.accessory-crown::after,
+  .player-preview.accessory-halo::before,
+  .player-preview.accessory-halo::after,
+  .player-preview.accessory-headphones::before,
+  .player-preview.accessory-headphones::after,
+  .player-preview.accessory-bow::before,
+  .player-preview.accessory-bow::after,
+  .player-preview.accessory-cap::before,
+  .player-preview.accessory-cap::after,
+  .player-preview.accessory-wizard::before,
+  .player-preview.accessory-wizard::after,
+  .player-preview.accessory-glasses::before,
+  .player-preview.accessory-glasses::after,
+  .player-preview.accessory-mustache::before,
+  .player-preview.accessory-mustache::after,
+  .player-preview.accessory-scarf::before,
+  .player-preview.accessory-scarf::after,
+  .player-preview.accessory-star::before,
+  .player-preview.accessory-star::after,
+  .player-preview.accessory-flower::before,
+  .player-preview.accessory-flower::after,
+  .player-preview.accessory-antenna::before,
+  .player-preview.accessory-antenna::after,
+  .player-preview.accessory-visor::before,
+  .player-preview.accessory-visor::after {
+    display: none;
+  }
+
+  .preview-image {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    opacity: 0.9;
+    mix-blend-mode: normal;
+  }
+
+  .preview-image img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  .preview-name {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18%;
+    color: rgba(255,255,255,0.88);
+    font-weight: 950;
+    font-size: clamp(12px, calc(var(--blob-size) * 0.13), 20px);
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.42);
+    overflow-wrap: anywhere;
+  }
+
+  .preview-accessory {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .preview-accessory.crown::before {
+    content: "";
+    position: absolute;
+    left: 30%;
+    top: -15%;
+    width: 40%;
+    height: 28%;
+    background: linear-gradient(180deg, #fff0aa, #ffb84d);
+    clip-path: polygon(0 100%, 0 35%, 23% 62%, 50% 0, 77% 62%, 100% 35%, 100% 100%);
+    filter: drop-shadow(0 7px 10px rgba(0,0,0,0.25));
+  }
+
+  .preview-accessory.halo::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -18%;
+    width: 58%;
+    height: 18%;
+    border: 5px solid rgba(255,244,190,0.92);
+    border-radius: 50%;
+    box-shadow: 0 0 18px rgba(255,244,190,0.42);
+    transform: translateX(-50%);
+  }
+
+  .preview-accessory.headphones::before,
+  .preview-accessory.headphones::after {
+    content: "";
+    position: absolute;
+    top: 24%;
+    width: 16%;
+    height: 34%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #dce4ff, #7a5cff);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+
+  .preview-accessory.headphones::before { left: -4%; }
+  .preview-accessory.headphones::after { right: -4%; }
+
+  .preview-accessory.bow::before,
+  .preview-accessory.bow::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    width: 24%;
+    height: 24%;
+    background: linear-gradient(135deg, #ff7ab8, #ff4d7d);
+    border-radius: 64% 12% 64% 18%;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.22));
+  }
+
+  .preview-accessory.bow::before {
+    left: 30%;
+    transform: rotate(28deg);
+  }
+
+  .preview-accessory.bow::after {
+    right: 30%;
+    transform: scaleX(-1) rotate(28deg);
+  }
+
+  .preview-accessory.cap::before {
+    content: "";
+    position: absolute;
+    left: 20%;
+    top: -8%;
+    width: 60%;
+    height: 26%;
+    background: linear-gradient(180deg, #52ffca, #0aa98e);
+    border-radius: 50% 50% 18% 18%;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 7px 10px rgba(0,0,0,0.22);
+  }
+
+  .preview-accessory.cap::after {
+    content: "";
+    position: absolute;
+    left: 54%;
+    top: 6%;
+    width: 28%;
+    height: 9%;
+    background: #dffef7;
+    border-radius: 999px;
+    transform: rotate(8deg);
+  }
+
+  .preview-accessory.wizard::before {
+    content: "";
+    position: absolute;
+    left: 33%;
+    top: -38%;
+    width: 34%;
+    height: 54%;
+    background: linear-gradient(180deg, #dce4ff, #7a5cff 58%, #38228f);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25));
+  }
+
+  .preview-accessory.wizard::after {
+    content: "";
+    position: absolute;
+    left: 24%;
+    top: 7%;
+    width: 52%;
+    height: 10%;
+    background: #ffcf5a;
+    border-radius: 999px;
+  }
+
+  .preview-accessory.glasses::before,
+  .preview-accessory.glasses::after {
+    content: "";
+    position: absolute;
+    top: 38%;
+    width: 24%;
+    height: 18%;
+    border: 5px solid rgba(8,11,24,0.82);
+    border-radius: 999px;
+    background: rgba(73,216,255,0.16);
+  }
+
+  .preview-accessory.glasses::before { left: 19%; }
+  .preview-accessory.glasses::after { right: 19%; }
+
+  .preview-accessory.mustache::before,
+  .preview-accessory.mustache::after {
+    content: "";
+    position: absolute;
+    top: 58%;
+    width: 28%;
+    height: 14%;
+    background: #211326;
+    border-radius: 100% 20% 100% 20%;
+  }
+
+  .preview-accessory.mustache::before {
+    left: 23%;
+    transform: rotate(10deg);
+  }
+
+  .preview-accessory.mustache::after {
+    right: 23%;
+    transform: scaleX(-1) rotate(10deg);
+  }
+
+  .preview-accessory.scarf::before {
+    content: "";
+    position: absolute;
+    left: 17%;
+    top: 72%;
+    width: 66%;
+    height: 15%;
+    background: linear-gradient(90deg, #ff4d7d, #7a5cff);
+    border-radius: 999px;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.18);
+  }
+
+  .preview-accessory.scarf::after {
+    content: "";
+    position: absolute;
+    left: 60%;
+    top: 80%;
+    width: 16%;
+    height: 26%;
+    background: #7a5cff;
+    border-radius: 4px 4px 12px 12px;
+    transform: rotate(-12deg);
+  }
+
+  .preview-accessory.star::before {
+    content: "";
+    position: absolute;
+    left: 61%;
+    top: 5%;
+    width: 24%;
+    height: 24%;
+    background: #ffcf5a;
+    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 56%, 79% 91%, 50% 70%, 21% 91%, 32% 56%, 2% 35%, 39% 35%);
+    filter: drop-shadow(0 0 10px rgba(255,207,90,0.45));
+  }
+
+  .preview-accessory.flower::before {
+    content: "";
+    position: absolute;
+    left: 13%;
+    top: 5%;
+    width: 26%;
+    height: 26%;
+    background:
+      radial-gradient(circle at center, #ffcf5a 0 18%, transparent 19%),
+      radial-gradient(circle at 50% 5%, #ff7ab8 0 17%, transparent 18%),
+      radial-gradient(circle at 95% 50%, #ff7ab8 0 17%, transparent 18%),
+      radial-gradient(circle at 50% 95%, #ff7ab8 0 17%, transparent 18%),
+      radial-gradient(circle at 5% 50%, #ff7ab8 0 17%, transparent 18%);
+    filter: drop-shadow(0 5px 8px rgba(0,0,0,0.2));
+  }
+
+  .preview-accessory.antenna::before {
+    content: "";
+    position: absolute;
+    left: 48%;
+    top: -25%;
+    width: 4%;
+    height: 34%;
+    background: rgba(220,228,255,0.88);
+    border-radius: 999px;
+    transform: rotate(-8deg);
+    transform-origin: bottom;
+  }
+
+  .preview-accessory.antenna::after {
+    content: "";
+    position: absolute;
+    left: 44%;
+    top: -31%;
+    width: 12%;
+    height: 12%;
+    background: #52ffca;
+    border-radius: 50%;
+    box-shadow: 0 0 14px rgba(82,255,202,0.7);
+  }
+
+  .preview-accessory.visor::before {
+    content: "";
+    position: absolute;
+    left: 17%;
+    top: 36%;
+    width: 66%;
+    height: 22%;
+    background: linear-gradient(90deg, rgba(73,216,255,0.9), rgba(122,92,255,0.9));
+    border-radius: 999px;
+    border: 4px solid rgba(6,8,18,0.74);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.32);
+  }
+
+  .customize-toggle {
+    position: absolute;
+    right: -8px;
+    bottom: 4px;
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 16%, rgba(255,255,255,0.26), transparent 24%),
+      rgba(3, 5, 12, 0.82);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  .customize-toggle svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+  }
+
+  .menu-content,
+  .customize-panel {
+    width: 100%;
+  }
+
+  .customize-panel {
+    max-width: 690px;
+    margin: 0 auto;
+  }
+
+  .customize-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    text-align: left;
+  }
+
+  .customize-group {
+    min-width: 0;
+  }
+
+  .customize-label {
+    display: block;
+    margin-bottom: 9px;
+    color: white;
+    font-size: 12px;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .color-row,
+  .accessory-row,
+  .image-actions,
+  .crop-actions {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .color-swatch {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 2px solid rgba(255,255,255,0.16);
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 20px rgba(0,0,0,0.18);
+  }
+
+  .color-swatch.active {
+    border-color: white;
+    transform: translateY(-1px);
+  }
+
+  .color-picker {
+    width: 46px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .accessory-button,
+  .image-button {
+    min-height: 38px;
+    padding: 10px 13px;
+    border: 1px solid rgba(255,255,255,0.11);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.075);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    font-size: 12px;
+  }
+
+  .accessory-button.active {
+    background: linear-gradient(135deg, rgba(255,77,125,0.64), rgba(122,92,255,0.48));
+  }
+
+  .crop-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(2,4,10,0.66);
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+  }
+
+  .crop-card {
+    width: min(360px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px;
+    background: rgba(12,16,31,0.96);
+    box-shadow: 0 28px 70px rgba(0,0,0,0.54);
+  }
+
+  .crop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .crop-title {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 950;
+    text-align: left;
+  }
+
+  .crop-close {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  #cropCanvas {
+    width: min(320px, 100%);
+    height: min(320px, calc(100vh - 190px));
+    min-height: 180px;
+    aspect-ratio: 1 / 1;
+    display: block;
+    margin: 0 auto;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.24);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .crop-slider {
+    width: 100%;
+    margin: 14px 0;
+    accent-color: #ff4d7d;
   }
 
   .subtitle {
@@ -992,8 +1492,10 @@
   }
 
   @media (max-width: 720px) {
-    h1,
-    .menu-screen h1 {
+    h1 {
+      font-size: 58px;
+    }
+    .menu-title {
       font-size: 58px;
     }
     .subtitle {
@@ -1004,8 +1506,11 @@
       padding: 28px 18px;
     }
     .player-preview {
-      --blob-size: 54px;
+      --blob-size: 112px;
       margin-bottom: 14px;
+    }
+    .customize-grid {
+      grid-template-columns: 1fr;
     }
     .controls {
       grid-template-columns: 1fr;
@@ -1040,9 +1545,11 @@
   }
 
   @media (min-width: 900px) {
-    h1,
-    .menu-screen h1 {
+    h1 {
       font-size: 94px;
+    }
+    .menu-title {
+      font-size: clamp(94px, 12vw, 116px);
     }
   }
   .setup-row {
@@ -1297,38 +1804,101 @@
 
   <div class="overlay" id="menu">
     <div class="menu-shell shop-open" id="menuShell">
+      <h1 class="menu-title" aria-label="Onigario"><span class="title-word" aria-hidden="true"><span>O</span><span>n</span><span>i</span><span>g</span><span>a</span><span>r</span><span>i</span><span>o</span></span></h1>
       <div class="screen menu-screen">
         <div class="menu-view" id="menuMainView">
-          <div class="player-preview" id="playerPreview" aria-hidden="true"></div>
-          <h1 aria-label="Onigario"><span class="title-word" aria-hidden="true"><span>O</span><span>n</span><span>i</span><span>g</span><span>a</span><span>r</span><span>i</span><span>o</span></span></h1>
-
-          <div class="controls" id="menuInstructions">
-            <div class="control">
-              <div class="key">Mouse</div>
-              <p>Crawl toward the cursor. Upgrade speed between runs.</p>
+          <div class="player-stage">
+            <div class="player-preview" id="playerPreview" aria-hidden="true">
+              <div class="preview-image hidden" id="previewImageWrap"><img id="previewImage" alt="" /></div>
+              <div class="preview-name" id="previewName">Oni</div>
+              <div class="preview-accessory" id="previewAccessory"></div>
             </div>
-            <div class="control">
-              <div class="key">Hold Click</div>
-              <p>Spend boost charge for a short burst. Upgrade length and power.</p>
-            </div>
-            <div class="control">
-              <div class="key">Space</div>
-              <p>Split half your mass toward the cursor. Re-merge after a delay.</p>
-            </div>
+            <button class="customize-toggle" id="customizeToggleBtn" type="button" aria-label="Customize player" title="Customize player">
+              <svg id="customizeBrushIcon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m14.6 5.4 4 4" />
+                <path d="M13 7 5.5 14.5a3.2 3.2 0 0 0-.8 1.4L4 20l4.1-.7a3.2 3.2 0 0 0 1.4-.8L17 11" />
+                <path d="M16.8 3.2a2.1 2.1 0 0 1 3 3L18 8l-3-3Z" />
+              </svg>
+              <svg id="customizeCloseIcon" class="hidden" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2.4" stroke-linecap="round">
+                <path d="M6 6l12 12" />
+                <path d="M18 6 6 18" />
+              </svg>
+            </button>
           </div>
 
-          <div class="setup-row">
-            <input id="nameInput" class="name-input" maxlength="24" value="Oni" placeholder="Name your blob..." />
-            <div class="setup-option-control">
-              <div class="tip-button setup-option-button" id="mapSizeBtn" role="button" tabindex="0">Map: Default</div>
+          <div class="menu-content" id="mainMenuContent">
+            <div class="controls" id="menuInstructions">
+              <div class="control">
+                <div class="key">Mouse</div>
+                <p>Crawl toward the cursor. Upgrade speed between runs.</p>
+              </div>
+              <div class="control">
+                <div class="key">Hold Click</div>
+                <p>Spend boost charge for a short burst. Upgrade length and power.</p>
+              </div>
+              <div class="control">
+                <div class="key">Space</div>
+                <p>Split half your mass toward the cursor. Re-merge after a delay.</p>
+              </div>
             </div>
-            <div class="setup-option-control">
-              <div class="tip-button setup-option-button" id="enemyCountBtn" role="button" tabindex="0">Enemy Count: Default</div>
+
+            <div class="setup-row">
+              <input id="nameInput" class="name-input" maxlength="24" value="Oni" placeholder="Name your blob..." />
+              <div class="setup-option-control">
+                <div class="tip-button setup-option-button" id="mapSizeBtn" role="button" tabindex="0">Map: Default</div>
+              </div>
+              <div class="setup-option-control">
+                <div class="tip-button setup-option-button" id="enemyCountBtn" role="button" tabindex="0">Enemy Count: Default</div>
+              </div>
             </div>
+
+            <button id="startBtn">Play</button>
+            <p class="mobile-help">On touch screens: drag to move, double tap to split, hold one finger to boost.</p>
           </div>
 
-          <button id="startBtn">Play</button>
-          <p class="mobile-help">On touch screens: drag to move, double tap to split, hold one finger to boost.</p>
+          <div class="customize-panel hidden" id="customizePanel">
+            <div class="customize-grid">
+              <div class="customize-group">
+                <label class="customize-label" for="playerColorInput">Player color</label>
+                <div class="color-row" id="colorSwatches">
+                  <button class="color-swatch" style="--swatch:#ff4d7d" type="button" data-color="#ff4d7d" aria-label="Pink"></button>
+                  <button class="color-swatch" style="--swatch:#52ffca" type="button" data-color="#52ffca" aria-label="Mint"></button>
+                  <button class="color-swatch" style="--swatch:#7a5cff" type="button" data-color="#7a5cff" aria-label="Violet"></button>
+                  <button class="color-swatch" style="--swatch:#49d8ff" type="button" data-color="#49d8ff" aria-label="Sky"></button>
+                  <button class="color-swatch" style="--swatch:#ffb84d" type="button" data-color="#ffb84d" aria-label="Gold"></button>
+                  <input class="color-picker" id="playerColorInput" type="color" value="#ff4d7d" aria-label="Custom player color" />
+                </div>
+              </div>
+              <div class="customize-group">
+                <span class="customize-label">Accessory</span>
+                <div class="accessory-row" id="accessoryButtons">
+                  <button class="accessory-button" type="button" data-accessory="ears">Ears</button>
+                  <button class="accessory-button" type="button" data-accessory="crown">Crown</button>
+                  <button class="accessory-button" type="button" data-accessory="halo">Halo</button>
+                  <button class="accessory-button" type="button" data-accessory="headphones">Headphones</button>
+                  <button class="accessory-button" type="button" data-accessory="bow">Bow</button>
+                  <button class="accessory-button" type="button" data-accessory="cap">Cap</button>
+                  <button class="accessory-button" type="button" data-accessory="wizard">Wizard</button>
+                  <button class="accessory-button" type="button" data-accessory="glasses">Glasses</button>
+                  <button class="accessory-button" type="button" data-accessory="mustache">Mustache</button>
+                  <button class="accessory-button" type="button" data-accessory="scarf">Scarf</button>
+                  <button class="accessory-button" type="button" data-accessory="star">Star</button>
+                  <button class="accessory-button" type="button" data-accessory="flower">Flower</button>
+                  <button class="accessory-button" type="button" data-accessory="antenna">Antenna</button>
+                  <button class="accessory-button" type="button" data-accessory="visor">Visor</button>
+                  <button class="accessory-button" type="button" data-accessory="none">None</button>
+                </div>
+              </div>
+              <div class="customize-group">
+                <span class="customize-label">Image decal</span>
+                <div class="image-actions">
+                  <button class="image-button" id="useImageBtn" type="button">Use Image</button>
+                  <button class="image-button ghost" id="clearImageBtn" type="button">Clear</button>
+                  <input id="imageFileInput" class="hidden" type="file" accept="image/*" />
+                </div>
+              </div>
+            </div>
+          </div>
           <button class="menu-icon-button settings-open" id="settingsBtn" type="button" aria-label="Open settings" title="Settings">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
@@ -1369,6 +1939,18 @@
               <span class="settings-label">Progress</span>
               <p class="settings-help">Reset shards, upgrades, best time, and campaign timer.</p>
               <button class="settings-reset" id="resetProgressBtn" type="button">Reset Progress</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <span></span>
+            <div>
+              <span class="settings-label">Backup</span>
+              <p class="settings-help">Export or import upgrades, shards, name, color, accessory, image, and settings.</p>
+              <div class="image-actions">
+                <button class="image-button" id="exportSaveBtn" type="button">Export Save</button>
+                <button class="image-button ghost" id="importSaveBtn" type="button">Import Save</button>
+                <input id="importSaveInput" class="hidden" type="file" accept="application/json,.json" />
+              </div>
             </div>
           </div>
         </div>
@@ -1440,6 +2022,21 @@
 
   <div class="toast" id="toast">Tip</div>
 
+  <div class="crop-dialog hidden" id="cropDialog" role="dialog" aria-label="Crop player image">
+    <div class="crop-card">
+      <div class="crop-head">
+        <div class="crop-title">Crop Image</div>
+        <button class="crop-close" id="cropCloseBtn" type="button" aria-label="Close cropper">×</button>
+      </div>
+      <canvas id="cropCanvas" width="320" height="320"></canvas>
+      <input class="crop-slider" id="cropZoomInput" type="range" min="1" max="4" step="0.01" value="1" aria-label="Image zoom" />
+      <div class="crop-actions">
+        <button class="image-button" id="applyCropBtn" type="button">Use Image</button>
+        <button class="image-button ghost" id="cancelCropBtn" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 (() => {
   "use strict";
@@ -1459,6 +2056,11 @@
   const menuShell = document.getElementById("menuShell");
   const menuMainView = document.getElementById("menuMainView");
   const menuInstructions = document.getElementById("menuInstructions");
+  const mainMenuContent = document.getElementById("mainMenuContent");
+  const customizePanel = document.getElementById("customizePanel");
+  const customizeToggleBtn = document.getElementById("customizeToggleBtn");
+  const customizeBrushIcon = document.getElementById("customizeBrushIcon");
+  const customizeCloseIcon = document.getElementById("customizeCloseIcon");
   const massText = document.getElementById("massText");
   const timerText = document.getElementById("timerText");
   const domText = document.getElementById("domText");
@@ -1472,6 +2074,23 @@
   const mapSizeBtn = document.getElementById("mapSizeBtn");
   const enemyCountBtn = document.getElementById("enemyCountBtn");
   const playerPreview = document.getElementById("playerPreview");
+  const previewImageWrap = document.getElementById("previewImageWrap");
+  const previewImage = document.getElementById("previewImage");
+  const previewName = document.getElementById("previewName");
+  const previewAccessory = document.getElementById("previewAccessory");
+  const colorSwatches = document.getElementById("colorSwatches");
+  const playerColorInput = document.getElementById("playerColorInput");
+  const accessoryButtons = document.getElementById("accessoryButtons");
+  const useImageBtn = document.getElementById("useImageBtn");
+  const clearImageBtn = document.getElementById("clearImageBtn");
+  const imageFileInput = document.getElementById("imageFileInput");
+  const cropDialog = document.getElementById("cropDialog");
+  const cropCanvas = document.getElementById("cropCanvas");
+  const cropCtx = cropCanvas.getContext("2d");
+  const cropZoomInput = document.getElementById("cropZoomInput");
+  const applyCropBtn = document.getElementById("applyCropBtn");
+  const cancelCropBtn = document.getElementById("cancelCropBtn");
+  const cropCloseBtn = document.getElementById("cropCloseBtn");
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsPanel = document.getElementById("settingsPanel");
   const settingsCloseBtn = document.getElementById("settingsCloseBtn");
@@ -1484,6 +2103,9 @@
   const sandboxShopRow = document.getElementById("sandboxShopRow");
   const sandboxShopInput = document.getElementById("sandboxShopInput");
   const resetProgressBtn = document.getElementById("resetProgressBtn");
+  const exportSaveBtn = document.getElementById("exportSaveBtn");
+  const importSaveBtn = document.getElementById("importSaveBtn");
+  const importSaveInput = document.getElementById("importSaveInput");
   const endShop = document.getElementById("endShop");
   const endShopToggle = document.getElementById("endShopToggle");
   const endShardsText = document.getElementById("endShardsText");
@@ -1555,6 +2177,17 @@
     enemyCountPreset: "default",
     sandboxEnemyCount: 1
   };
+  const DEFAULT_CUSTOMIZATION = {
+    color: PLAYER_COLOR_A,
+    accessory: "ears",
+    image: ""
+  };
+  const ACCESSORIES = [
+    "ears", "crown", "halo", "headphones",
+    "bow", "cap", "wizard", "glasses", "mustache",
+    "scarf", "star", "flower", "antenna", "visor",
+    "none"
+  ];
 
   let W = 0;
   let H = 0;
@@ -1577,6 +2210,8 @@
   let upgrades = { ...DEFAULT_UPGRADES };
   let sandboxShopEnabled = false;
   let settings = { ...DEFAULT_SETTINGS };
+  let customization = { ...DEFAULT_CUSTOMIZATION };
+  let playerImage = new Image();
   let gameStartedAt = 0;
   let gameCompletedAt = 0;
   let gamesStarted = 0;
@@ -1601,6 +2236,8 @@
     splits: 0
   };
   let tipIndex = 0;
+  let customizeOpen = false;
+  let cropState = null;
 
   const tips = [
     "Big enemies chase. Small enemies flee. Medium enemies panic dramatically.",
@@ -1630,6 +2267,55 @@
 
   function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
+  }
+
+  function safeHexColor(value, fallback = PLAYER_COLOR_A) {
+    return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : fallback;
+  }
+
+  function mixHex(a, b, amount) {
+    const ax = parseInt(a.slice(1), 16);
+    const bx = parseInt(b.slice(1), 16);
+    const ar = ax >> 16;
+    const ag = (ax >> 8) & 255;
+    const ab = ax & 255;
+    const br = bx >> 16;
+    const bg = (bx >> 8) & 255;
+    const bb = bx & 255;
+    const mix = (from, to) => Math.round(from + (to - from) * amount);
+    return "#" + [mix(ar, br), mix(ag, bg), mix(ab, bb)]
+      .map(part => part.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  function hexToRgba(hex, alpha) {
+    const value = parseInt(safeHexColor(hex).slice(1), 16);
+    const r = value >> 16;
+    const g = (value >> 8) & 255;
+    const b = value & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function playerColorA() {
+    return safeHexColor(customization.color);
+  }
+
+  function playerColorB() {
+    return mixHex(playerColorA(), "#ffffff", 0.34);
+  }
+
+  function normalizedAccessory(value) {
+    return ACCESSORIES.includes(value) ? value : DEFAULT_CUSTOMIZATION.accessory;
+  }
+
+  function setPlayerImage(src) {
+    customization.image = typeof src === "string" && src.startsWith("data:image/") ? src : "";
+    playerImage = new Image();
+    if (customization.image) playerImage.src = customization.image;
+  }
+
+  function playerImageReady() {
+    return Boolean(customization.image && playerImage.complete && playerImage.naturalWidth);
   }
 
   function worldInset(margin) {
@@ -1946,6 +2632,112 @@
     enemyNamesInput.value = settings.enemyNames;
   }
 
+  function loadCustomization() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("onigarioCustomization") || "{}");
+      customization = {
+        ...DEFAULT_CUSTOMIZATION,
+        color: safeHexColor(stored.color),
+        accessory: normalizedAccessory(stored.accessory),
+        image: typeof stored.image === "string" ? stored.image : ""
+      };
+      setPlayerImage(customization.image);
+    } catch {
+      customization = { ...DEFAULT_CUSTOMIZATION };
+      setPlayerImage("");
+    }
+    playerName = (localStorage.getItem("onigarioPlayerName") || "Oni").trim().slice(0, 24) || "Oni";
+    nameInput.value = playerName;
+  }
+
+  function saveCustomization() {
+    playerName = (nameInput.value || "Oni").trim().slice(0, 24) || "Oni";
+    localStorage.setItem("onigarioPlayerName", playerName);
+    localStorage.setItem("onigarioCustomization", JSON.stringify(customization));
+    updatePlayerPreview();
+  }
+
+  function exportSave() {
+    saveSettings();
+    saveMeta();
+    saveCustomization();
+    const payload = {
+      game: "Onigario",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      playerName,
+      customization,
+      settings,
+      progress: {
+        shards: Math.max(0, Math.floor(shards)),
+        upgrades,
+        sandboxShopEnabled,
+        gameStartedAt,
+        gameCompletedAt,
+        gamesStarted,
+        best: Math.max(0, Number(localStorage.getItem("onigarioBest") || 0))
+      }
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "onigario-save.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast("Save exported.");
+  }
+
+  function applyImportedSave(payload) {
+    if (!payload || payload.game !== "Onigario") throw new Error("Not an Onigario save.");
+    const importedProgress = payload.progress || {};
+    const importedUpgrades = importedProgress.upgrades || {};
+    settings = { ...DEFAULT_SETTINGS, ...(payload.settings || {}) };
+    settings.disableShake = Boolean(settings.disableShake);
+    settings.tipsEnabled = settings.tipsEnabled !== false;
+    settings.enemyNames = typeof settings.enemyNames === "string" ? settings.enemyNames : DEFAULT_SETTINGS.enemyNames;
+    if (settings.mapSizePreset === "normal") settings.mapSizePreset = "default";
+    if (settings.enemyCountPreset === "normal") settings.enemyCountPreset = "default";
+    settings.mapSizePreset = MAP_SIZE_PRESETS.some(item => item.id === settings.mapSizePreset) || settings.mapSizePreset === "custom" ? settings.mapSizePreset : DEFAULT_SETTINGS.mapSizePreset;
+    settings.enemyCountPreset = ENEMY_COUNT_PRESETS.some(item => item.id === settings.enemyCountPreset) || settings.enemyCountPreset === "custom" ? settings.enemyCountPreset : DEFAULT_SETTINGS.enemyCountPreset;
+    settings.sandboxMapSize = Number.isFinite(Number(settings.sandboxMapSize)) ? Number(settings.sandboxMapSize) : DEFAULT_SETTINGS.sandboxMapSize;
+    settings.sandboxEnemyCount = Number.isFinite(Number(settings.sandboxEnemyCount)) ? Number(settings.sandboxEnemyCount) : DEFAULT_SETTINGS.sandboxEnemyCount;
+
+    customization = {
+      ...DEFAULT_CUSTOMIZATION,
+      ...(payload.customization || {}),
+      color: safeHexColor(payload.customization && payload.customization.color),
+      accessory: normalizedAccessory(payload.customization && payload.customization.accessory)
+    };
+    setPlayerImage(payload.customization && payload.customization.image);
+    playerName = (payload.playerName || "Oni").trim().slice(0, 24) || "Oni";
+    nameInput.value = playerName;
+
+    shards = Math.max(0, Number(importedProgress.shards || 0));
+    upgrades = { ...DEFAULT_UPGRADES };
+    for (const def of UPGRADE_DEFS) {
+      upgrades[def.id] = Math.max(1, Math.floor(Number(importedUpgrades[def.id] || 1)));
+    }
+    sandboxShopEnabled = Boolean(importedProgress.sandboxShopEnabled);
+    gameStartedAt = Math.max(0, Number(importedProgress.gameStartedAt || 0));
+    gameCompletedAt = Math.max(0, Number(importedProgress.gameCompletedAt || 0));
+    gamesStarted = Math.max(0, Number(importedProgress.gamesStarted || 0));
+    const best = Math.max(0, Number(importedProgress.best || 0));
+    if (best) localStorage.setItem("onigarioBest", String(Math.floor(best)));
+    else localStorage.removeItem("onigarioBest");
+    if (!sandboxUnlocked()) sandboxShopEnabled = false;
+
+    saveSettings();
+    saveMeta();
+    saveCustomization();
+    syncSettingsUi();
+    renderUpgradeShop();
+    applyEnemyNamesToCurrentRun();
+    showToast("Save imported.");
+  }
+
   function selectedMapPreset() {
     return MAP_SIZE_PRESETS.find(item => item.id === settings.mapSizePreset) || MAP_SIZE_PRESETS[1];
   }
@@ -2021,6 +2813,7 @@
   }
 
   function openSettingsView() {
+    setCustomizeOpen(false);
     menuMainView.classList.add("hidden");
     settingsPanel.classList.remove("hidden");
     menuShell.classList.add("settings-view-open");
@@ -2032,8 +2825,113 @@
     menuShell.classList.remove("settings-view-open");
   }
 
+  function setCustomizeOpen(open) {
+    customizeOpen = open;
+    mainMenuContent.classList.toggle("hidden", open);
+    customizePanel.classList.toggle("hidden", !open);
+    customizeBrushIcon.classList.toggle("hidden", open);
+    customizeCloseIcon.classList.toggle("hidden", !open);
+    menuShell.classList.toggle("customize-view-open", open);
+    customizeToggleBtn.setAttribute("aria-label", open ? "Close customization" : "Customize player");
+    customizeToggleBtn.title = open ? "Close customization" : "Customize player";
+  }
+
   function updatePlayerPreview() {
-    playerPreview.style.setProperty("--blob-size", "72px");
+    const color = playerColorA();
+    const secondary = playerColorB();
+    playerPreview.style.setProperty("--blob-a", color);
+    playerPreview.style.setProperty("--blob-mid", mixHex(color, secondary, 0.48));
+    playerPreview.style.setProperty("--blob-b", secondary);
+    playerPreview.style.setProperty("--blob-glow", hexToRgba(color, 0.35));
+    playerPreview.style.setProperty("--blob-shine", hexToRgba(secondary, 0.62));
+    playerPreview.className = "player-preview accessory-" + customization.accessory;
+    previewName.textContent = playerName;
+    previewAccessory.className = "preview-accessory " + (customization.accessory === "ears" || customization.accessory === "none" ? "" : customization.accessory);
+    previewImageWrap.classList.toggle("hidden", !customization.image);
+    if (customization.image) previewImage.src = customization.image;
+    playerColorInput.value = color;
+    for (const swatch of colorSwatches.querySelectorAll("[data-color]")) {
+      swatch.classList.toggle("active", swatch.dataset.color.toLowerCase() === color);
+    }
+    for (const button of accessoryButtons.querySelectorAll("[data-accessory]")) {
+      button.classList.toggle("active", button.dataset.accessory === customization.accessory);
+    }
+  }
+
+  function renderCrop() {
+    if (!cropState) return;
+    const canvasSize = cropCanvas.width;
+    cropCtx.clearRect(0, 0, canvasSize, canvasSize);
+    cropCtx.fillStyle = "rgba(0,0,0,0.28)";
+    cropCtx.fillRect(0, 0, canvasSize, canvasSize);
+    drawCropImage(cropCtx, canvasSize);
+    cropCtx.save();
+    cropCtx.strokeStyle = "rgba(255,255,255,0.82)";
+    cropCtx.lineWidth = 3;
+    cropCtx.beginPath();
+    cropCtx.arc(canvasSize / 2, canvasSize / 2, canvasSize * 0.46, 0, Math.PI * 2);
+    cropCtx.stroke();
+    cropCtx.restore();
+  }
+
+  function drawCropImage(targetCtx, canvasSize) {
+    const img = cropState.image;
+    const baseScale = Math.max(canvasSize / img.naturalWidth, canvasSize / img.naturalHeight);
+    const scale = baseScale * cropState.zoom;
+    const w = img.naturalWidth * scale;
+    const h = img.naturalHeight * scale;
+    const x = (canvasSize - w) / 2 + cropState.x;
+    const y = (canvasSize - h) / 2 + cropState.y;
+    targetCtx.drawImage(img, x, y, w, h);
+  }
+
+  function openCropper(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        cropState = { image: img, x: 0, y: 0, zoom: 1, dragging: false, lastX: 0, lastY: 0 };
+        cropZoomInput.value = "1";
+        cropDialog.classList.remove("hidden");
+        renderCrop();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function applyCrop() {
+    if (!cropState) return;
+    const output = document.createElement("canvas");
+    output.width = 320;
+    output.height = 320;
+    const out = output.getContext("2d");
+    out.fillStyle = "rgba(0,0,0,0)";
+    out.clearRect(0, 0, 320, 320);
+    drawCropImage(out, 320);
+    setPlayerImage(output.toDataURL("image/png"));
+    saveCustomization();
+    cropDialog.classList.add("hidden");
+    cropState = null;
+    imageFileInput.value = "";
+    showToast("Image applied.");
+  }
+
+  function closeCropper() {
+    cropDialog.classList.add("hidden");
+    cropState = null;
+    imageFileInput.value = "";
+  }
+
+  function cropPointerPosition(e) {
+    const rect = cropCanvas.getBoundingClientRect();
+    const scaleX = cropCanvas.width / rect.width;
+    const scaleY = cropCanvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
   }
 
   function loadMeta() {
@@ -2082,6 +2980,7 @@
     pauseMenu.classList.add("hidden");
     menuShell.classList.add("shop-open");
     closeSettingsView();
+    setCustomizeOpen(false);
     playerCells = [];
     enemies = [];
     particles = [];
@@ -2393,6 +3292,7 @@
   }
 
   function resetGame() {
+    saveCustomization();
     startGameTimer();
     if (finishCampaignIfComplete()) return;
     applyMapSizeForRun();
@@ -2436,8 +3336,8 @@
       r: radiusFromMass(startMass),
       mergeTimer: 0,
       launchTimer: 0,
-      colorA: PLAYER_COLOR_A,
-      colorB: PLAYER_COLOR_B,
+      colorA: playerColorA(),
+      colorB: playerColorB(),
       main: true
     }];
 
@@ -2487,6 +3387,7 @@
     congratsScreen.classList.add("hidden");
     pauseMenu.classList.add("hidden");
     closeSettingsView();
+    setCustomizeOpen(false);
     menuShell.classList.add("shop-open");
     renderUpgradeShop();
   }
@@ -2562,7 +3463,8 @@
   window.addEventListener("keydown", e => {
     const typing = e.target.matches("input, textarea, select") || e.target.isContentEditable;
     const settingsOpen = menuShell.classList.contains("settings-view-open");
-    if (!typing && !settingsOpen && !e.repeat && e.code === "KeyR") {
+    const customizerOpen = menuShell.classList.contains("customize-view-open");
+    if (!typing && !settingsOpen && !customizerOpen && !e.repeat && e.code === "KeyR") {
       e.preventDefault();
       resetGame();
       return;
@@ -2572,8 +3474,12 @@
       if (state === "playing") splitPlayer();
     }
     if (e.code === "Escape") {
-      if (settingsOpen) {
+      if (!cropDialog.classList.contains("hidden")) {
+        closeCropper();
+      } else if (settingsOpen) {
         closeSettingsView();
+      } else if (customizerOpen) {
+        setCustomizeOpen(false);
       } else if (state === "playing") {
         pauseGame();
       } else if (state === "paused") {
@@ -2587,6 +3493,87 @@
   resumeBtn.addEventListener("click", resumeGame);
   pauseMenuBtn.addEventListener("click", returnToMainMenu);
   resetProgressBtn.addEventListener("click", resetProgress);
+  customizeToggleBtn.addEventListener("click", () => {
+    setCustomizeOpen(!customizeOpen);
+  });
+  nameInput.addEventListener("input", () => {
+    saveCustomization();
+  });
+  colorSwatches.addEventListener("click", e => {
+    const button = e.target.closest("[data-color]");
+    if (!button) return;
+    customization.color = safeHexColor(button.dataset.color);
+    saveCustomization();
+  });
+  playerColorInput.addEventListener("input", () => {
+    customization.color = safeHexColor(playerColorInput.value);
+    saveCustomization();
+  });
+  accessoryButtons.addEventListener("click", e => {
+    const button = e.target.closest("[data-accessory]");
+    if (!button) return;
+    customization.accessory = normalizedAccessory(button.dataset.accessory);
+    saveCustomization();
+  });
+  useImageBtn.addEventListener("click", () => imageFileInput.click());
+  clearImageBtn.addEventListener("click", () => {
+    setPlayerImage("");
+    saveCustomization();
+    showToast("Image cleared.");
+  });
+  imageFileInput.addEventListener("change", () => {
+    openCropper(imageFileInput.files && imageFileInput.files[0]);
+  });
+  cropZoomInput.addEventListener("input", () => {
+    if (!cropState) return;
+    cropState.zoom = Number(cropZoomInput.value) || 1;
+    renderCrop();
+  });
+  cropCanvas.addEventListener("pointerdown", e => {
+    if (!cropState) return;
+    const pointer = cropPointerPosition(e);
+    cropCanvas.setPointerCapture(e.pointerId);
+    cropState.dragging = true;
+    cropState.lastX = pointer.x;
+    cropState.lastY = pointer.y;
+  });
+  cropCanvas.addEventListener("pointermove", e => {
+    if (!cropState || !cropState.dragging) return;
+    const pointer = cropPointerPosition(e);
+    cropState.x += pointer.x - cropState.lastX;
+    cropState.y += pointer.y - cropState.lastY;
+    cropState.lastX = pointer.x;
+    cropState.lastY = pointer.y;
+    renderCrop();
+  });
+  cropCanvas.addEventListener("pointerup", e => {
+    if (!cropState) return;
+    cropState.dragging = false;
+    cropCanvas.releasePointerCapture(e.pointerId);
+  });
+  cropCanvas.addEventListener("pointercancel", () => {
+    if (cropState) cropState.dragging = false;
+  });
+  applyCropBtn.addEventListener("click", applyCrop);
+  cancelCropBtn.addEventListener("click", closeCropper);
+  cropCloseBtn.addEventListener("click", closeCropper);
+  exportSaveBtn.addEventListener("click", exportSave);
+  importSaveBtn.addEventListener("click", () => importSaveInput.click());
+  importSaveInput.addEventListener("change", () => {
+    const file = importSaveInput.files && importSaveInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        applyImportedSave(JSON.parse(reader.result));
+      } catch (error) {
+        showToast(error.message || "Import failed.");
+      } finally {
+        importSaveInput.value = "";
+      }
+    };
+    reader.readAsText(file);
+  });
   settingsBtn.addEventListener("click", () => {
     openSettingsView();
   });
@@ -2719,6 +3706,7 @@
 
   loadSettings();
   syncSettingsUi();
+  loadCustomization();
   loadMeta();
   renderUpgradeShop();
   if (gameStartedAt && !gameCompletedAt && allUpgradesMaxed()) finishCampaignIfComplete();
@@ -2758,14 +3746,14 @@
       r: newRadius,
       mergeTimer: 4.2,
       launchTimer: SPLIT_LAUNCH_TIME,
-      colorA: PLAYER_COLOR_A,
-      colorB: PLAYER_COLOR_B,
+      colorA: playerColorA(),
+      colorB: playerColorB(),
       main: false
     });
 
     stats.splits++;
     splitCooldown = 0.42;
-    spawnBurst(largest.x, largest.y, "#ffb84d", 18, 1);
+    spawnBurst(largest.x, largest.y, playerColorB(), 18, 1);
   }
 
   function updatePlayer(dt) {
@@ -2997,7 +3985,7 @@
           break;
         } else if (canEat(e, p)) {
           e.mass += p.mass * 0.9;
-          spawnBurst(p.x, p.y, PLAYER_COLOR_A, 28, Math.min(2, p.r / 45));
+          spawnBurst(p.x, p.y, playerColorA(), 28, Math.min(2, p.r / 45));
           shake = Math.max(shake, 10);
           playerCells.splice(j, 1);
           if (playerCells.length === 0) {
@@ -3185,6 +4173,21 @@
     };
   }
 
+  function traceBlobPath(ctx, cell, wobble) {
+    const r = cell.r;
+    const points = 34;
+    ctx.beginPath();
+    for (let i = 0; i <= points; i++) {
+      const ang = i / points * Math.PI * 2;
+      const bump = 1 + Math.sin(ang * 5 + wobble) * 0.018 + Math.cos(ang * 3 - wobble * 1.7) * 0.012;
+      const x = cell.x + Math.cos(ang) * r * bump;
+      const y = cell.y + Math.sin(ang) * r * bump;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
   function drawGrid() {
     const grid = 120;
     const left = camera.x - W / 2 / camera.zoom;
@@ -3224,25 +4227,23 @@
     ctx.shadowBlur = isPlayer ? 28 : 18;
     ctx.shadowColor = a;
     ctx.fillStyle = grad;
-    ctx.beginPath();
-
     const wobble = isPlayer ? performance.now() * 0.002 : cell.wobble;
-    const points = 34;
-    for (let i = 0; i <= points; i++) {
-      const ang = i / points * Math.PI * 2;
-      const bump = 1 + Math.sin(ang * 5 + wobble) * 0.018 + Math.cos(ang * 3 - wobble * 1.7) * 0.012;
-      const x = cell.x + Math.cos(ang) * r * bump;
-      const y = cell.y + Math.sin(ang) * r * bump;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-
-    ctx.closePath();
+    traceBlobPath(ctx, cell, wobble);
     ctx.fill();
+
+    if (isPlayer && playerImageReady()) {
+      ctx.save();
+      traceBlobPath(ctx, cell, wobble);
+      ctx.clip();
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(playerImage, cell.x - r, cell.y - r, r * 2, r * 2);
+      ctx.restore();
+    }
 
     ctx.shadowBlur = 0;
     ctx.lineWidth = clamp(r * 0.12, 0.35, 2.6);
     ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    traceBlobPath(ctx, cell, wobble);
     ctx.stroke();
 
     if (!isPlayer && cell.kind === "hunter") {
@@ -3255,14 +4256,8 @@
       ctx.setLineDash([]);
     }
 
-    // Cute oni horns on the player blob.
     if (isPlayer && r > 18) {
-      const hornSize = clamp(r * 0.23, 8, 32);
-      ctx.fillStyle = "rgba(255,238,245,0.92)";
-      ctx.strokeStyle = "rgba(255,77,125,0.55)";
-      ctx.lineWidth = Math.max(1.5, r * 0.018);
-      drawHorn(cell.x - r * 0.26, cell.y - r * 0.72, -0.32, hornSize);
-      drawHorn(cell.x + r * 0.26, cell.y - r * 0.72, 0.32, hornSize);
+      drawPlayerAccessory(cell);
     }
 
     ctx.restore();
@@ -3279,6 +4274,220 @@
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPlayerAccessory(cell) {
+    const r = cell.r;
+    const accessory = customization.accessory;
+    ctx.save();
+    if (accessory === "ears") {
+      const hornSize = clamp(r * 0.23, 8, 32);
+      ctx.fillStyle = "rgba(255,238,245,0.92)";
+      ctx.strokeStyle = hexToRgba(playerColorA(), 0.55);
+      ctx.lineWidth = Math.max(1.5, r * 0.018);
+      drawHorn(cell.x - r * 0.26, cell.y - r * 0.72, -0.32, hornSize);
+      drawHorn(cell.x + r * 0.26, cell.y - r * 0.72, 0.32, hornSize);
+    } else if (accessory === "crown") {
+      const w = clamp(r * 0.74, 24, 82);
+      const h = w * 0.44;
+      const x = cell.x - w / 2;
+      const y = cell.y - r * 0.96;
+      ctx.fillStyle = "#ffcf5a";
+      ctx.strokeStyle = "rgba(255,255,255,0.42)";
+      ctx.lineWidth = Math.max(1.5, r * 0.016);
+      ctx.beginPath();
+      ctx.moveTo(x, y + h);
+      ctx.lineTo(x, y + h * 0.35);
+      ctx.lineTo(x + w * 0.24, y + h * 0.62);
+      ctx.lineTo(x + w * 0.5, y);
+      ctx.lineTo(x + w * 0.76, y + h * 0.62);
+      ctx.lineTo(x + w, y + h * 0.35);
+      ctx.lineTo(x + w, y + h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (accessory === "halo") {
+      ctx.strokeStyle = "rgba(255,244,190,0.92)";
+      ctx.lineWidth = clamp(r * 0.06, 2.5, 6);
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = "rgba(255,244,190,0.62)";
+      ctx.beginPath();
+      ctx.ellipse(cell.x, cell.y - r * 0.95, r * 0.48, r * 0.13, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (accessory === "headphones") {
+      ctx.strokeStyle = "rgba(220,228,255,0.88)";
+      ctx.lineWidth = clamp(r * 0.06, 3, 8);
+      ctx.beginPath();
+      ctx.arc(cell.x, cell.y - r * 0.04, r * 0.82, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.fillStyle = "#7a5cff";
+      for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.roundRect(cell.x + side * r * 0.76 - r * 0.13, cell.y - r * 0.25, r * 0.26, r * 0.42, r * 0.11);
+        ctx.fill();
+      }
+    } else if (accessory === "bow") {
+      ctx.fillStyle = "#ff4d7d";
+      drawBow(cell.x, cell.y - r * 0.9, r * 0.48);
+    } else if (accessory === "cap") {
+      ctx.fillStyle = "#16c7a6";
+      ctx.strokeStyle = "rgba(255,255,255,0.34)";
+      ctx.lineWidth = Math.max(1.5, r * 0.018);
+      ctx.beginPath();
+      ctx.ellipse(cell.x, cell.y - r * 0.73, r * 0.45, r * 0.18, 0, Math.PI, Math.PI * 2);
+      ctx.lineTo(cell.x + r * 0.44, cell.y - r * 0.54);
+      ctx.quadraticCurveTo(cell.x, cell.y - r * 0.43, cell.x - r * 0.44, cell.y - r * 0.54);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "rgba(223,254,247,0.9)";
+      ctx.beginPath();
+      ctx.ellipse(cell.x + r * 0.32, cell.y - r * 0.52, r * 0.24, r * 0.06, 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (accessory === "wizard") {
+      const y = cell.y - r * 1.18;
+      ctx.fillStyle = "#7a5cff";
+      ctx.strokeStyle = "rgba(220,228,255,0.45)";
+      ctx.lineWidth = Math.max(1.5, r * 0.018);
+      ctx.beginPath();
+      ctx.moveTo(cell.x, y - r * 0.45);
+      ctx.lineTo(cell.x + r * 0.36, y + r * 0.36);
+      ctx.lineTo(cell.x - r * 0.36, y + r * 0.36);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffcf5a";
+      ctx.beginPath();
+      ctx.roundRect(cell.x - r * 0.5, y + r * 0.25, r, r * 0.12, r * 0.06);
+      ctx.fill();
+    } else if (accessory === "glasses") {
+      drawGlasses(cell.x, cell.y - r * 0.06, r);
+    } else if (accessory === "mustache") {
+      ctx.fillStyle = "#211326";
+      drawMustache(cell.x, cell.y + r * 0.18, r * 0.42);
+    } else if (accessory === "scarf") {
+      ctx.fillStyle = "#ff4d7d";
+      ctx.beginPath();
+      ctx.roundRect(cell.x - r * 0.52, cell.y + r * 0.58, r * 1.04, r * 0.16, r * 0.08);
+      ctx.fill();
+      ctx.fillStyle = "#7a5cff";
+      ctx.save();
+      ctx.translate(cell.x + r * 0.24, cell.y + r * 0.73);
+      ctx.rotate(-0.18);
+      ctx.beginPath();
+      ctx.roundRect(0, 0, r * 0.18, r * 0.36, r * 0.06);
+      ctx.fill();
+      ctx.restore();
+    } else if (accessory === "star") {
+      ctx.fillStyle = "#ffcf5a";
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "rgba(255,207,90,0.6)";
+      drawStar(cell.x + r * 0.42, cell.y - r * 0.55, r * 0.17, r * 0.34);
+    } else if (accessory === "flower") {
+      drawFlower(cell.x - r * 0.46, cell.y - r * 0.54, r * 0.18);
+    } else if (accessory === "antenna") {
+      ctx.strokeStyle = "rgba(220,228,255,0.88)";
+      ctx.lineWidth = Math.max(2, r * 0.035);
+      ctx.beginPath();
+      ctx.moveTo(cell.x, cell.y - r * 0.72);
+      ctx.quadraticCurveTo(cell.x - r * 0.12, cell.y - r * 1.03, cell.x - r * 0.04, cell.y - r * 1.2);
+      ctx.stroke();
+      ctx.fillStyle = "#52ffca";
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "rgba(82,255,202,0.72)";
+      ctx.beginPath();
+      ctx.arc(cell.x - r * 0.04, cell.y - r * 1.2, clamp(r * 0.1, 4, 14), 0, Math.PI * 2);
+      ctx.fill();
+    } else if (accessory === "visor") {
+      ctx.fillStyle = "rgba(73,216,255,0.84)";
+      ctx.strokeStyle = "rgba(6,8,18,0.78)";
+      ctx.lineWidth = Math.max(2, r * 0.055);
+      ctx.beginPath();
+      ctx.roundRect(cell.x - r * 0.55, cell.y - r * 0.18, r * 1.1, r * 0.28, r * 0.14);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawBow(x, y, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.scale(side, 1);
+      ctx.rotate(0.34);
+      ctx.beginPath();
+      ctx.ellipse(size * 0.24, 0, size * 0.32, size * 0.22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = "#ffd1e2";
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGlasses(x, y, r) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(8,11,24,0.82)";
+    ctx.fillStyle = "rgba(73,216,255,0.16)";
+    ctx.lineWidth = Math.max(2, r * 0.055);
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.roundRect(x + side * r * 0.27 - r * 0.17, y - r * 0.12, r * 0.34, r * 0.24, r * 0.1);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(x - r * 0.1, y);
+    ctx.lineTo(x + r * 0.1, y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawMustache(x, y, size) {
+    for (const side of [-1, 1]) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(side, 1);
+      ctx.rotate(0.1);
+      ctx.beginPath();
+      ctx.ellipse(size * 0.24, 0, size * 0.36, size * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawStar(x, y, inner, outer) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const radius = i % 2 ? inner : outer;
+      const angle = -Math.PI / 2 + i * Math.PI / 5;
+      const px = x + Math.cos(angle) * radius;
+      const py = y + Math.sin(angle) * radius;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawFlower(x, y, size) {
+    ctx.save();
+    ctx.fillStyle = "#ff7ab8";
+    for (let i = 0; i < 5; i++) {
+      const angle = i / 5 * Math.PI * 2;
+      ctx.beginPath();
+      ctx.ellipse(x + Math.cos(angle) * size, y + Math.sin(angle) * size, size * 0.72, size * 0.46, angle, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#ffcf5a";
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.48, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 
@@ -3399,7 +4608,7 @@
     allCells.sort((a, b) => a.z - b.z);
 
     for (const item of allCells) {
-      if (item.kind === "player") drawCell(item.cell, PLAYER_COLOR_A, PLAYER_COLOR_B, true);
+      if (item.kind === "player") drawCell(item.cell, playerColorA(), playerColorB(), true);
       else drawCell(item.cell, item.cell.color[0], item.cell.color[1], false);
     }
 
@@ -3514,7 +4723,7 @@
     }
 
     for (const p of playerCells) {
-      mctx.fillStyle = "rgba(255,184,77,0.95)";
+      mctx.fillStyle = playerColorB();
       mctx.beginPath();
       mctx.arc(p.x * scale, p.y * scale, clamp(p.r * scale, 3, 10), 0, Math.PI * 2);
       mctx.fill();
